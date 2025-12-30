@@ -151,7 +151,7 @@ class SearchScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              if (history.isNotEmpty) _buildSearchHistory(history, ref),
+              _buildSearchHistory(history, ref, context),
               _buildPopularDestinations(),
             ],
           ),
@@ -160,7 +160,7 @@ class SearchScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSearchHistory(List<String> history, WidgetRef ref) {
+  Widget _buildSearchHistory(List<String> history, WidgetRef ref, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Column(
@@ -170,40 +170,47 @@ class SearchScreen extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Recent Searches', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              TextButton(
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Clear History'),
-                      content: const Text('Are you sure you want to clear your search history?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            ref.read(searchHistoryProvider.notifier).clearHistory();
-                          },
-                          child: const Text('Clear', style: TextStyle(color: AppColors.error)),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                child: const Text('Clear'),
-              ),
+              if (history.isNotEmpty)
+                TextButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Clear History'),
+                        content: const Text('Are you sure you want to clear your search history?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              ref.read(searchHistoryProvider.notifier).clearHistory();
+                            },
+                            child: const Text('Clear', style: TextStyle(color: AppColors.error)),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  child: const Text('Clear'),
+                ),
             ],
           ),
-          Wrap(
-            spacing: 8,
-            children: history.map((search) => ActionChip(
-              label: Text(search, style: const TextStyle(fontSize: 12)),
-              onPressed: () => ref.read(searchControllerProvider.notifier).setSearchFromHistory(search),
-            )).toList(),
-          ),
+          if (history.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: Text('Your recent searches will appear here', style: TextStyle(color: AppColors.textLight)),
+            )
+          else
+            Wrap(
+              spacing: 8,
+              children: history.map((search) => ActionChip(
+                label: Text(search, style: const TextStyle(fontSize: 12)),
+                onPressed: () => ref.read(searchControllerProvider.notifier).setSearchFromHistory(search),
+              )).toList(),
+            ),
         ],
       ),
     );
