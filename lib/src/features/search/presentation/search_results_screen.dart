@@ -40,10 +40,20 @@ class SearchResultsScreen extends ConsumerWidget {
             },
           );
         },
-        loading: () => ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: 5,
-          itemBuilder: (context, index) => const FlightCardShimmer(),
+        loading: () => Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text('Finding the best deals for you...', style: TextStyle(color: AppColors.textLight)),
+            ),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: 5,
+                itemBuilder: (context, index) => const FlightCardShimmer(),
+              ),
+            ),
+          ],
         ),
         error: (err, stack) => Center(child: Text('Error: $err')),
       ),
