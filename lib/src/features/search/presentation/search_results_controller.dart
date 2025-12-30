@@ -42,12 +42,10 @@ class SearchResultsNotifier extends StateNotifier<AsyncValue<List<Flight>>> {
         list.sort((a, b) => a.price.compareTo(b.price));
         break;
       case FlightFilter.fastest:
-        // Mock duration sorting since we don't have duration in the model yet
-        list.shuffle(); 
+        list.sort((a, b) => a.duration.compareTo(b.duration));
         break;
       case FlightFilter.direct:
-        // Mock direct filter
-        return list.take(1).toList();
+        return list.where((f) => f.isDirect).toList();
     }
     return list;
   }

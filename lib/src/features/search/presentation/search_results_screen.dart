@@ -142,9 +142,8 @@ class FlightCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final duration = flight.arrivalTime.difference(flight.departureTime);
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
+    final hours = flight.duration ~/ 60;
+    final minutes = flight.duration % 60;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -233,9 +232,13 @@ class FlightCard extends StatelessWidget {
                             const Expanded(child: Divider(thickness: 1)),
                           ],
                         ),
-                        const Text(
-                          'Direct',
-                          style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
+                        Text(
+                          flight.isDirect ? 'Direct' : '1 Stop',
+                          style: TextStyle(
+                            color: flight.isDirect ? Colors.green : Colors.orange,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
