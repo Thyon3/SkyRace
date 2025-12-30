@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../constants/app_colors.dart';
 import '../../search/domain/flight.dart';
 import '../domain/booking.dart';
@@ -20,12 +21,14 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _passportController = TextEditingController();
+  final _emailController = TextEditingController();
 
   @override
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _passportController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -37,10 +40,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       next.whenOrNull(
         data: (booking) {
           if (booking != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Booking Successful!')),
-            );
-            context.go('/');
+            _showSuccessDialog();
           }
         },
         error: (err, stack) {
@@ -52,110 +52,258 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     });
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Passenger Details'),
+        title: const Text('Checkout'),
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.textDark,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildFlightSummary(),
-              const SizedBox(height: 24),
-              const Text(
-                'Passenger 1',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _firstNameController,
-                decoration: const InputDecoration(
-                  labelText: 'First Name',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _lastNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Last Name',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passportController,
-                decoration: const InputDecoration(
-                  labelText: 'Passport Number',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: bookingState.isLoading
-                      ? null
-                      : () {
-                          if (_formKey.currentState!.validate()) {
-                            ref.read(bookingControllerProvider.notifier).bookFlight(
-                                  flightId: widget.flight.id,
-                                  passengers: [
-                                    Passenger(
-                                      firstName: _firstNameController.text,
-                                      lastName: _lastNameController.text,
-                                      passportNumber: _passportController.text,
-                                    ),
-                                  ],
-                                  totalPrice: widget.flight.price,
-                                );
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: AppColors.primary,
-                  ),
-                  child: bookingState.isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Confirm Booking',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        child: Column(
+          children: [
+            _buildFlightSummaryCard(),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Passenger Details',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _firstNameController,
+                      label: 'First Name',
+                      icon: Icons.person_outline,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _lastNameController,
+                      label: 'Last Name',
+                      icon: Icons.person_outline,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _emailController,
+                      label: 'Contact Email',
+                      icon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _passportController,
+                      label: 'Passport Number',
+                      icon: Icons.badge_outlined,
+                    ),
+                    const SizedBox(height: 32),
+                    _buildPriceBreakdown(),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: bookingState.isLoading
+                            ? null
+                            : () {
+                                if (_formKey.currentState!.validate()) {
+                                  ref.read(bookingControllerProvider.notifier).bookFlight(
+                                        flightId: widget.flight.id,
+                                        passengers: [
+                                          Passenger(
+                                            firstName: _firstNameController.text,
+                                            lastName: _lastNameController.text,
+                                            passportNumber: _passportController.text,
+                                          ),
+                                        ],
+                                        totalPrice: widget.flight.price,
+                                      );
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
                         ),
+                        child: bookingState.isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text(
+                                'Pay & Confirm',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildFlightSummary() {
-    return Card(
-      color: AppColors.secondary,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType? keyboardType,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade200),
+        ),
+      ),
+      validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+    );
+  }
+
+  Widget _buildFlightSummaryCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                widget.flight.airline,
+                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+              ),
+              Text(
+                DateFormat('EEE, MMM d').format(widget.flight.departureTime),
+                style: const TextStyle(color: AppColors.textLight),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildLocationSummary(widget.flight.origin, DateFormat('HH:mm').format(widget.flight.departureTime)),
+              const Expanded(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Icon(Icons.arrow_forward, color: Colors.grey, size: 16),
+                ),
+              ),
+              _buildLocationSummary(widget.flight.destination, DateFormat('HH:mm').format(widget.flight.arrivalTime)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocationSummary(String location, String time) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(time, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        Text(location.split('(').first.trim(), style: const TextStyle(color: AppColors.textLight)),
+      ],
+    );
+  }
+
+  Widget _buildPriceBreakdown() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: [
+          _buildPriceRow('Flight Fare', widget.flight.price),
+          _buildPriceRow('Taxes & Fees', 45.0),
+          const Divider(height: 32),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Total Amount', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(
+                '${widget.flight.currency} ${widget.flight.price + 45}',
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.primary),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriceRow(String label, double amount) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: AppColors.textLight)),
+          Text('${widget.flight.currency} $amount', style: const TextStyle(fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              '${widget.flight.origin} to ${widget.flight.destination}',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            const Icon(Icons.check_circle, color: Colors.green, size: 80),
+            const SizedBox(height: 24),
+            const Text(
+              'Booking Confirmed!',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
-            Text(widget.flight.airline),
-            const SizedBox(height: 8),
-            Text(
-              'Total Price: ${widget.flight.currency} ${widget.flight.price}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
-                fontSize: 18,
+            const SizedBox(height: 12),
+            const Text(
+              'Your flight has been booked successfully. You can find your ticket in My Bookings.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textLight),
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  context.go('/');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Go to Home'),
               ),
             ),
           ],
