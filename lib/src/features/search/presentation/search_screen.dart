@@ -8,6 +8,7 @@ import '../domain/location.dart';
 import 'search_controller.dart';
 import 'search_history_controller.dart';
 import 'location_picker.dart';
+import 'passenger_selector.dart';
 
 class SearchScreen extends ConsumerWidget {
   const SearchScreen({super.key});
@@ -118,7 +119,7 @@ class SearchScreen extends ConsumerWidget {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        _buildPassengerInput(searchState, controller),
+                        _buildPassengerInput(context, searchState, controller),
                         const SizedBox(height: 24),
                         SizedBox(
                           width: double.infinity,
@@ -318,33 +319,35 @@ class SearchScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPassengerInput(SearchState state, SearchController controller) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.person_outline, color: AppColors.textLight, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              '${state.passengers} Passenger${state.passengers > 1 ? 's' : ''}',
-              style: const TextStyle(fontWeight: FontWeight.w600),
+  Widget _buildPassengerInput(BuildContext context, SearchState state, SearchController controller) {
+    return InkWell(
+      onTap: () async {
+        final passengers = await showModalBottomSheet<int>(
+          context: context,
+          builder: (context) => PassengerSelector(initialPassengers: state.passengers),
+        );
+        if (passengers != null) controller.setPassengers(passengers);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.person_outline, color: AppColors.textLight, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                '${state.passengers} Passenger${state.passengers > 1 ? 's' : ''}',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.remove_circle_outline, size: 20),
-            onPressed: state.passengers > 1 ? () => controller.setPassengers(state.passengers - 1) : null,
-          ),
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline, size: 20),
-            onPressed: () => controller.setPassengers(state.passengers + 1),
-          ),
-        ],
+            const Icon(Icons.keyboard_arrow_down, color: AppColors.textLight),
+          ],
+        ),
       ),
     );
   }
