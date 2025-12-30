@@ -32,9 +32,16 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
   }
 
   Future<void> logout() async {
-    state = const AsyncLoading();
-    await _repository.logout();
+    await _repository.removeToken();
     state = const AsyncData(null);
+  }
+
+  Future<void> updateProfile(String name, String email) async {
+    final currentUser = state.value;
+    if (currentUser == null || currentUser.token == null) return;
+
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => _repository.updateProfile(name, email, currentUser.token!));
   }
 }
 

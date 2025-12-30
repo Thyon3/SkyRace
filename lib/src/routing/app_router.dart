@@ -10,6 +10,7 @@ import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/auth_controller.dart';
 import '../features/home/presentation/main_screen.dart';
 import '../features/search/presentation/flight_details_screen.dart';
+import '../features/auth/presentation/edit_profile_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authControllerProvider);
@@ -20,7 +21,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isLoggedIn = authState.value != null;
       final isLoggingIn = state.matchedLocation == '/login' || state.matchedLocation == '/register';
 
-      if (!isLoggedIn && !isLoggingIn && state.matchedLocation.contains('book')) {
+      if (!isLoggedIn && !isLoggingIn && (state.matchedLocation.contains('book') || state.matchedLocation.contains('edit-profile'))) {
         return '/login';
       }
       return null;
@@ -33,6 +34,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/edit-profile',
+        builder: (context, state) => const EditProfileScreen(),
       ),
       GoRoute(
         path: '/',

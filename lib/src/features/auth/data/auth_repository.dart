@@ -5,39 +5,53 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../domain/user.dart';
 
 class AuthRepository {
-  final String baseUrl = 'http://10.0.2.2:5000/api/auth';
+  final String baseUrl = 'http://10.0.2.2:5000/api';
 
   Future<User> login(String email, String password) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'password': password}),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final user = User.fromJson(data['user']).copyWith(token: data['token']);
-      await _saveToken(data['token']);
-      return user;
-    } else {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Login failed');
+    final uri = Uri.parse('$baseUrl/auth/login');
+    
+    try {
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email, 'password': password}),
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final user = User.fromJson(data['user']).copyWith(token: data['token']);
+        await _saveToken(data['token']);
+        return user;
+      } else {
+        throw Exception('Failed to login');
+      }
+    } catch (e) {
+      print('Error logging in: $e');
+      rethrow;
     }
   }
 
   Future<User> register(String name, String email, String password) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/register'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'name': name, 'email': email, 'password': password}),
-    );
-
-    if (response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-      final user = User.fromJson(data['user']).copyWith(token: data['token']);
-      await _saveToken(data['token']);
-      return user;
-    } else {
-      throw Exception(jsonDecode(response.body)['message'] ?? 'Registration failed');
+    final uri = Uri.parse('$baseUrl/auth/register');
+    
+    try {
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'name': name, 'email': email, 'password': password}),
+      );
+      
+      if (response.statusCode == 201) {
+        final data = json.decode(response.body);
+        final user = User.fromJson(data['user']).copyWith(token: data['token']);
+        await _saveToken(data['token']);
+        return user;
+      } else {
+        throw Exception('Failed to register');
+      }
+    } catch (e) {
+      print('Error registering: $e');
+      rethrow;
     }
   }
 
@@ -51,20 +65,34 @@ class AuthRepository {
     return prefs.getString('auth_token');
   }
 
-  Future<void> logout() async {
+  Future<void> removeToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
   }
-}
 
-extension UserExtension on User {
-  User copyWith({String? id, String? name, String? email, String? token}) {
-    return User(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      email: email ?? this.email,
-      token: token ?? this.token,
-    );
+  Future<User> updateProfile(String name, String email, String token) async {
+    final uri = Uri.parse('$baseUrl/auth/profile');
+    
+    try {
+      final response = await http.put(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({'name': name, 'email': email}),
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return User.fromJson(data['user']).copyWith(token: token);
+      } else {
+        throw Exception('Failed to update profile');
+      }
+    } catch (e) {
+      print('Error updating profile: $e');
+      rethrow;
+    }
   }
 }
 

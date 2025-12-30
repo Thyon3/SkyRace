@@ -79,6 +79,11 @@ class ProfileScreen extends ConsumerWidget {
                     onChanged: (value) => ref.read(themeControllerProvider.notifier).toggleTheme(),
                   ),
                   ListTile(
+                    leading: const Icon(Icons.person_outline),
+                    title: const Text('Edit Profile'),
+                    onTap: () => context.push('/edit-profile'),
+                  ),
+                  ListTile(
                     leading: const Icon(Icons.settings_outlined),
                     title: const Text('Settings'),
                     onTap: () {},
