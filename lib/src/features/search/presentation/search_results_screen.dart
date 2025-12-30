@@ -13,6 +13,7 @@ class SearchResultsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final flightsAsync = ref.watch(searchResultsProvider);
+    final controller = ref.read(searchResultsProvider.notifier);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -23,7 +24,7 @@ class SearchResultsScreen extends ConsumerWidget {
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(50),
-          child: _buildFilterBar(),
+          child: _buildFilterBar(ref, controller),
         ),
       ),
       body: flightsAsync.when(
@@ -49,7 +50,8 @@ class SearchResultsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildFilterBar() {
+  Widget _buildFilterBar(WidgetRef ref, SearchResultsNotifier controller) {
+    final currentFilter = controller.currentFilter;
     return Container(
       height: 50,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -60,11 +62,33 @@ class SearchResultsScreen extends ConsumerWidget {
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          _FilterChip(label: 'Cheapest', isSelected: true),
-          _FilterChip(label: 'Fastest', isSelected: false),
-          _FilterChip(label: 'Direct only', isSelected: false),
-          _FilterChip(label: 'Airlines', isSelected: false),
+          _buildFilterChip('Cheapest', currentFilter == FlightFilter.cheapest, () => controller.setFilter(FlightFilter.cheapest)),
+          _buildFilterChip('Fastest', currentFilter == FlightFilter.fastest, () => controller.setFilter(FlightFilter.fastest)),
+          _buildFilterChip('Direct only', currentFilter == FlightFilter.direct, () => controller.setFilter(FlightFilter.direct)),
+          _buildFilterChip('Airlines', false, () {}),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, bool isSelected, VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: FilterChip(
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (_) => onTap(),
+        backgroundColor: Colors.white,
+        selectedColor: AppColors.primary.withOpacity(0.1),
+        checkmarkColor: AppColors.primary,
+        labelStyle: TextStyle(
+          color: isSelected ? AppColors.primary : AppColors.textDark,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: isSelected ? AppColors.primary : Colors.grey.shade300),
+        ),
       ),
     );
   }
@@ -223,34 +247,6 @@ class FlightCard extends StatelessWidget {
           style: const TextStyle(color: AppColors.textLight, fontSize: 14),
         ),
       ],
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-
-  const _FilterChip({required this.label, required this.isSelected});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8, top: 10, bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: isSelected ? AppColors.primary : Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.white : AppColors.textDark,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          fontSize: 13,
-        ),
-      ),
     );
   }
 }
