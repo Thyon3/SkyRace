@@ -1,6 +1,9 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../search/presentation/search_screen.dart';
 import '../../bookings/presentation/my_bookings_screen.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../utils/theme_controller.dart';
 import '../../../constants/app_colors.dart';
 
 class MainScreen extends StatefulWidget {
@@ -44,6 +47,7 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authControllerProvider);
+    final themeMode = ref.watch(themeControllerProvider);
     final user = authState.value;
 
     return Scaffold(
@@ -51,7 +55,7 @@ class ProfileScreen extends ConsumerWidget {
       body: user == null
           ? Center(
               child: ElevatedButton(
-                onPressed: () => ref.read(authControllerProvider.notifier).logout(), // Or navigate to login
+                onPressed: () => ref.read(authControllerProvider.notifier).logout(),
                 child: const Text('Login'),
               ),
             )
@@ -68,6 +72,12 @@ class ProfileScreen extends ConsumerWidget {
                   Text(user.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                   Text(user.email, style: const TextStyle(color: AppColors.textLight)),
                   const SizedBox(height: 32),
+                  SwitchListTile(
+                    title: const Text('Dark Mode'),
+                    secondary: const Icon(Icons.dark_mode_outlined),
+                    value: themeMode == ThemeMode.dark,
+                    onChanged: (value) => ref.read(themeControllerProvider.notifier).toggleTheme(),
+                  ),
                   ListTile(
                     leading: const Icon(Icons.settings_outlined),
                     title: const Text('Settings'),
