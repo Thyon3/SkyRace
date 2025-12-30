@@ -44,6 +44,8 @@ class User {
   final String email;
   final String? token;
   final UserPreferences preferences;
+  final int loyaltyPoints;
+  final String loyaltyTier;
 
   User({
     required this.id,
@@ -51,6 +53,8 @@ class User {
     required this.email,
     this.token,
     required this.preferences,
+    this.loyaltyPoints = 0,
+    this.loyaltyTier = 'Bronze',
   });
 
   factory User.fromJson(Map<String, dynamic> json, {String? token}) {
@@ -60,6 +64,8 @@ class User {
       email: json['email'] ?? '',
       token: token ?? json['token'],
       preferences: UserPreferences.fromJson(json['preferences'] ?? {}),
+      loyaltyPoints: json['loyaltyPoints'] ?? 0,
+      loyaltyTier: json['loyaltyTier'] ?? 'Bronze',
     );
   }
 
@@ -69,6 +75,8 @@ class User {
     String? email,
     String? token,
     UserPreferences? preferences,
+    int? loyaltyPoints,
+    String? loyaltyTier,
   }) {
     return User(
       id: id ?? this.id,
@@ -76,6 +84,8 @@ class User {
       email: email ?? this.email,
       token: token ?? this.token,
       preferences: preferences ?? this.preferences,
+      loyaltyPoints: loyaltyPoints ?? this.loyaltyPoints,
+      loyaltyTier: loyaltyTier ?? this.loyaltyTier,
     );
   }
 }

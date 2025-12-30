@@ -15,6 +15,7 @@ import '../features/search/presentation/flight_details_screen.dart';
 import '../features/auth/presentation/edit_profile_screen.dart';
 import '../features/home/presentation/help_center_screen.dart';
 import '../features/home/presentation/settings_screen.dart';
+import '../features/home/presentation/loyalty_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authControllerProvider);
@@ -82,6 +83,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/loyalty',
+        builder: (context, state) => const LoyaltyScreen(),
       ),
       GoRoute(
         path: '/ticket',

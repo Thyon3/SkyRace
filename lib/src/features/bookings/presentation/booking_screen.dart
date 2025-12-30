@@ -270,6 +270,8 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
           _buildSummaryItem('Seats', _selectedSeats.join(', ')),
           const Divider(height: 32),
           _buildPriceBreakdown(totalPassengers, totalPrice),
+          const SizedBox(height: 16),
+          _buildLoyaltyBonus(totalPrice),
           const SizedBox(height: 32),
           const Text('Payment Method', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
@@ -429,6 +431,30 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         children: [
           Text(label, style: const TextStyle(color: AppColors.textLight)),
           Text('${widget.flight.currency} $amount', style: const TextStyle(fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoyaltyBonus(double totalPrice) {
+    final points = totalPrice.toInt();
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.amber.shade200),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.stars, color: Colors.amber),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'You will earn $points SkyPoints with this booking!',
+              style: TextStyle(color: Colors.amber.shade900, fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+          ),
         ],
       ),
     );

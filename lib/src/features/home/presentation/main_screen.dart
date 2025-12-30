@@ -101,17 +101,19 @@ class ProfileScreen extends ConsumerWidget {
                     user.email,
                     style: const TextStyle(color: AppColors.textLight),
                   ),
-                  const SizedBox(height: 32),
-                  SwitchListTile(
-                    title: const Text('Dark Mode'),
-                    secondary: const Icon(Icons.dark_mode_outlined),
-                    value: themeMode == ThemeMode.dark,
-                    onChanged: (value) => ref.read(themeControllerProvider.notifier).toggleTheme(),
-                  ),
+                  const SizedBox(height: 24),
+                  _buildLoyaltySummary(context, user.loyaltyTier, user.loyaltyPoints),
+                  const SizedBox(height: 24),
                   ListTile(
                     leading: const Icon(Icons.person_outline),
                     title: const Text('Edit Profile'),
                     onTap: () => context.push('/edit-profile'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.star_outline, color: Colors.amber),
+                    title: const Text('SkyRewards'),
+                    subtitle: const Text('View points and benefits'),
+                    onTap: () => context.push('/loyalty'),
                   ),
                   ListTile(
                     leading: const Icon(Icons.settings_outlined),
@@ -161,6 +163,45 @@ class ProfileScreen extends ConsumerWidget {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildLoyaltySummary(BuildContext context, String tier, int points) {
+    return InkWell(
+      onTap: () => context.push('/loyalty'),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+        ),
+        child: Row(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tier.toUpperCase(),
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$points SkyPoints',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const Spacer(),
+            const Icon(Icons.chevron_right, color: AppColors.primary),
+          ],
+        ),
+      ),
     );
   }
 }
