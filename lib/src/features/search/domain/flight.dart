@@ -1,3 +1,26 @@
+class Seat {
+  final String number;
+  final String type;
+  final bool isOccupied;
+  final double price;
+
+  Seat({
+    required this.number,
+    required this.type,
+    required this.isOccupied,
+    required this.price,
+  });
+
+  factory Seat.fromJson(Map<String, dynamic> json) {
+    return Seat(
+      number: json['number'] ?? '',
+      type: json['type'] ?? 'economy',
+      isOccupied: json['isOccupied'] ?? false,
+      price: (json['price'] as num).toDouble(),
+    );
+  }
+}
+
 class Flight {
   final String id;
   final String airline;
@@ -10,6 +33,9 @@ class Flight {
   final double price;
   final String currency;
   final bool isDirect;
+  final String fareRules;
+  final String refundPolicy;
+  final List<Seat> seats;
 
   Flight({
     required this.id,
@@ -23,6 +49,9 @@ class Flight {
     required this.price,
     required this.currency,
     required this.isDirect,
+    required this.fareRules,
+    required this.refundPolicy,
+    required this.seats,
   });
 
   factory Flight.fromJson(Map<String, dynamic> json) {
@@ -38,6 +67,9 @@ class Flight {
       price: (json['price'] as num).toDouble(),
       currency: json['currency'] ?? 'USD',
       isDirect: json['isDirect'] ?? true,
+      fareRules: json['fareRules'] ?? 'Standard fare rules apply.',
+      refundPolicy: json['refundPolicy'] ?? 'Refundable within 24 hours.',
+      seats: (json['seats'] as List?)?.map((e) => Seat.fromJson(e)).toList() ?? [],
     );
   }
 }

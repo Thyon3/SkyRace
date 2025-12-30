@@ -1,3 +1,5 @@
+import '../../search/domain/flight.dart';
+
 class Passenger {
   final String firstName;
   final String lastName;
@@ -28,16 +30,20 @@ class Passenger {
 
 class Booking {
   final String? id;
-  final String flightId;
+  final String? flightId;
+  final Flight? flight;
   final List<Passenger> passengers;
+  final List<String> seats;
   final double totalPrice;
   final String status;
   final DateTime? createdAt;
 
   Booking({
     this.id,
-    required this.flightId,
+    this.flightId,
+    this.flight,
     required this.passengers,
+    required this.seats,
     required this.totalPrice,
     this.status = 'pending',
     this.createdAt,
@@ -47,6 +53,7 @@ class Booking {
     return {
       'flightId': flightId,
       'passengers': passengers.map((p) => p.toJson()).toList(),
+      'seats': seats,
       'totalPrice': totalPrice,
     };
   }
@@ -54,10 +61,12 @@ class Booking {
   factory Booking.fromJson(Map<String, dynamic> json) {
     return Booking(
       id: json['_id'],
-      flightId: json['flight'] is Map ? json['flight']['_id'] : json['flight'],
+      flightId: json['flight'] is String ? json['flight'] : (json['flight'] is Map ? json['flight']['_id'] : null),
+      flight: json['flight'] is Map ? Flight.fromJson(json['flight']) : null,
       passengers: (json['passengers'] as List)
           .map((p) => Passenger.fromJson(p))
           .toList(),
+      seats: List<String>.from(json['seats'] ?? []),
       totalPrice: (json['totalPrice'] as num).toDouble(),
       status: json['status'] ?? 'pending',
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,

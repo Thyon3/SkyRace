@@ -15,7 +15,13 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
     if (token != null) {
       // In a real app, you'd fetch the user profile with the token
       // For now, we'll just set a mock user if token exists
-      state = AsyncData(User(id: 'mock_user_id', name: 'John Doe', email: 'john@example.com', token: token));
+      state = AsyncData(User(
+        id: 'mock_user_id', 
+        name: 'John Doe', 
+        email: 'john@example.com', 
+        token: token,
+        preferences: UserPreferences(language: 'en', currency: 'USD', theme: 'light'),
+      ));
     } else {
       state = const AsyncData(null);
     }
@@ -42,6 +48,14 @@ class AuthController extends StateNotifier<AsyncValue<User?>> {
 
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => _repository.updateProfile(name, email, currentUser.token!));
+  }
+
+  Future<void> updatePreferences(UserPreferences preferences) async {
+    final currentUser = state.value;
+    if (currentUser == null || currentUser.token == null) return;
+
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => _repository.updatePreferences(preferences, currentUser.token!));
   }
 }
 

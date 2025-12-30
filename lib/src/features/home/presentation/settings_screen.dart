@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../constants/app_colors.dart';
+import '../../auth/presentation/auth_controller.dart';
+import '../../auth/domain/user.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authControllerProvider);
+    final user = authState.value;
+    
+    if (user == null) return const Scaffold(body: Center(child: Text('Please login to view settings')));
+
+    final prefs = user.preferences;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -18,18 +28,37 @@ class SettingsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           _buildSettingsSection('Preferences', [
-            _buildSettingsItem(Icons.language, 'Language', 'English'),
-            _buildSettingsItem(Icons.monetization_on_outlined, 'Currency', 'USD'),
+            _buildSettingsItem(
+              context,
+              Icons.language, 
+              'Language', 
+              prefs.language == 'en' ? 'English' : 'Spanish',
+              () => _showLanguagePicker(context, ref, prefs),
+            ),
+            _buildSettingsItem(
+              context,
+              Icons.monetization_on_outlined, 
+              'Currency', 
+              prefs.currency,
+              () => _showCurrencyPicker(context, ref, prefs),
+            ),
+            _buildSettingsItem(
+              context,
+              Icons.dark_mode_outlined, 
+              'Theme', 
+              prefs.theme.toUpperCase(),
+              () => _showThemePicker(context, ref, prefs),
+            ),
           ]),
           const SizedBox(height: 24),
           _buildSettingsSection('Notifications', [
-            _buildSettingsItem(Icons.notifications_outlined, 'Push Notifications', 'On'),
-            _buildSettingsItem(Icons.email_outlined, 'Email Notifications', 'Off'),
+            _buildSettingsItem(context, Icons.notifications_outlined, 'Push Notifications', 'On', () {}),
+            _buildSettingsItem(context, Icons.email_outlined, 'Email Notifications', 'Off', () {}),
           ]),
           const SizedBox(height: 24),
           _buildSettingsSection('Legal', [
-            _buildSettingsItem(Icons.description_outlined, 'Terms of Service', ''),
-            _buildSettingsItem(Icons.privacy_tip_outlined, 'Privacy Policy', ''),
+            _buildSettingsItem(context, Icons.description_outlined, 'Terms of Service', '', () {}),
+            _buildSettingsItem(context, Icons.privacy_tip_outlined, 'Privacy Policy', '', () {}),
           ]),
         ],
       ),
@@ -48,26 +77,76 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
         Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.grey.shade200)),
           child: Column(children: items),
         ),
       ],
     );
   }
 
-  Widget _buildSettingsItem(IconData icon, String title, String value) {
+  Widget _buildSettingsItem(BuildContext context, IconData icon, String title, String value, VoidCallback onTap) {
     return ListTile(
-      leading: Icon(icon, color: AppColors.textLight),
-      title: Text(title),
+      leading: Icon(icon, color: AppColors.primary, size: 22),
+      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (value.isNotEmpty)
-            Text(value, style: const TextStyle(color: AppColors.textLight)),
-          const Icon(Icons.chevron_right, size: 20),
+            Text(value, style: const TextStyle(color: AppColors.textLight, fontSize: 14)),
+          const SizedBox(width: 4),
+          const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
         ],
       ),
-      onTap: () {},
+      onTap: onTap,
+    );
+  }
+
+  void _showLanguagePicker(BuildContext context, WidgetRef ref, UserPreferences current) {
+    _showPicker(context, 'Select Language', ['English', 'Spanish'], (val) {
+      ref.read(authControllerProvider.notifier).updatePreferences(
+        current.copyWith(language: val == 'English' ? 'en' : 'es')
+      );
+    });
+  }
+
+  void _showCurrencyPicker(BuildContext context, WidgetRef ref, UserPreferences current) {
+    _showPicker(context, 'Select Currency', ['USD', 'EUR', 'GBP'], (val) {
+      ref.read(authControllerProvider.notifier).updatePreferences(
+        current.copyWith(currency: val)
+      );
+    });
+  }
+
+  void _showThemePicker(BuildContext context, WidgetRef ref, UserPreferences current) {
+    _showPicker(context, 'Select Theme', ['Light', 'Dark'], (val) {
+      ref.read(authControllerProvider.notifier).updatePreferences(
+        current.copyWith(theme: val.toLowerCase())
+      );
+    });
+  }
+
+  void _showPicker(BuildContext context, String title, List<String> options, Function(String) onSelect) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+          ...options.map((opt) => ListTile(
+            title: Text(opt),
+            onTap: () {
+              onSelect(opt);
+              Navigator.pop(context);
+            },
+          )),
+          const SizedBox(height: 16),
+        ],
+      ),
     );
   }
 }

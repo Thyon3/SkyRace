@@ -6,6 +6,8 @@ import '../features/auth/presentation/register_screen.dart';
 import '../features/search/presentation/search_screen.dart';
 import '../features/search/presentation/search_results_screen.dart';
 import '../features/bookings/presentation/booking_screen.dart';
+import '../features/bookings/presentation/ticket_screen.dart';
+import '../features/bookings/domain/booking.dart';
 import '../features/search/domain/flight.dart';
 import '../features/auth/presentation/auth_controller.dart';
 import '../features/home/presentation/main_screen.dart';
@@ -24,7 +26,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isAuthRoute = state.matchedLocation == '/login' || state.matchedLocation == '/register';
 
       if (!isLoggedIn && !isAuthRoute) {
-        // Allow access to search and results even if not logged in
         if (state.matchedLocation == '/' || state.matchedLocation == '/results' || state.matchedLocation == '/results/details') {
           return null;
         }
@@ -81,6 +82,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/ticket',
+        builder: (context, state) => TicketScreen(booking: state.extra as Booking),
       ),
     ],
   );

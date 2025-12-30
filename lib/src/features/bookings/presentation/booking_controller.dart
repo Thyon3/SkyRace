@@ -13,6 +13,7 @@ class BookingController extends StateNotifier<AsyncValue<Booking?>> {
     required String flightId,
     required List<Passenger> passengers,
     required double totalPrice,
+    required List<String> seats,
   }) async {
     final user = _ref.read(authControllerProvider).value;
     if (user == null || user.token == null) {
@@ -26,6 +27,7 @@ class BookingController extends StateNotifier<AsyncValue<Booking?>> {
       flightId: flightId,
       passengers: passengers,
       totalPrice: totalPrice,
+      seats: seats,
     );
 
     state = await AsyncValue.guard(() => _repository.createBooking(booking, user.token!));

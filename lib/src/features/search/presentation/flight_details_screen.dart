@@ -46,6 +46,15 @@ class FlightDetailsScreen extends StatelessWidget {
                   _buildBaggageRow(Icons.shopping_bag_outlined, 'Personal item', 'Included'),
                   _buildBaggageRow(Icons.backpack_outlined, 'Cabin bag', 'Included'),
                   _buildBaggageRow(Icons.luggage_outlined, 'Checked bag', 'From \$30'),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Fare & Refund Policy',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildPolicyItem(Icons.gavel_outlined, 'Fare Rules', flight.fareRules),
+                  const SizedBox(height: 16),
+                  _buildPolicyItem(Icons.replay_outlined, 'Refund Policy', flight.refundPolicy),
                   const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
@@ -59,6 +68,7 @@ class FlightDetailsScreen extends StatelessWidget {
                       child: const Text('Select this flight', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     ),
                   ),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
@@ -116,6 +126,9 @@ class FlightDetailsScreen extends StatelessWidget {
   }
 
   Widget _buildFlightInfoCard() {
+    final hours = flight.duration ~/ 60;
+    final minutes = flight.duration % 60;
+    
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -130,7 +143,7 @@ class FlightDetailsScreen extends StatelessWidget {
             const Divider(height: 24),
             _buildInfoRow(Icons.confirmation_number_outlined, 'Flight Number', flight.flightNumber),
             const Divider(height: 24),
-            _buildInfoRow(Icons.timer_outlined, 'Duration', '7h 15m'),
+            _buildInfoRow(Icons.timer_outlined, 'Duration', '${hours}h ${minutes}m'),
             const Divider(height: 24),
             _buildInfoRow(Icons.attach_money, 'Price', '${flight.currency} ${flight.price}'),
           ],
@@ -163,6 +176,26 @@ class FlightDetailsScreen extends StatelessWidget {
           Text(status, style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
         ],
       ),
+    );
+  }
+
+  Widget _buildPolicyItem(IconData icon, String title, String description) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: AppColors.primary, size: 20),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text(description, style: const TextStyle(color: AppColors.textLight, fontSize: 14)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

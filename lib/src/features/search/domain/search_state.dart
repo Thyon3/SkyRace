@@ -1,4 +1,4 @@
-enum TripType { oneWay, returnTrip }
+enum TripType { oneWay, returnTrip, multiCity }
 
 class SearchState {
   final String? origin;

@@ -93,6 +93,29 @@ class AuthRepository {
       print('Error updating profile: $e');
       rethrow;
     }
+  Future<User> updatePreferences(UserPreferences preferences, String token) async {
+    final uri = Uri.parse('$baseUrl/auth/preferences');
+    
+    try {
+      final response = await http.put(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode(preferences.toJson()),
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return User.fromJson(data).copyWith(token: token);
+      } else {
+        throw Exception('Failed to update preferences');
+      }
+    } catch (e) {
+      print('Error updating preferences: $e');
+      rethrow;
+    }
   }
 }
 

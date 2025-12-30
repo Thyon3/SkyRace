@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import '../../../constants/app_colors.dart';
 import '../domain/booking.dart';
 import 'booking_controller.dart';
@@ -68,81 +69,110 @@ class BookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('SkyRace Air', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
+    final flight = booking.flight;
+    if (flight == null) return const SizedBox();
+
+    final originCode = flight.origin.split('(').last.replaceAll(')', '');
+    final destCode = flight.destination.split('(').last.replaceAll(')', '');
+
+    return GestureDetector(
+      onTap: () {
+        // TODO: Navigate to Ticket Details
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(flight.airline, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: booking.status == 'cancelled' ? Colors.red.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      booking.status.toUpperCase(),
+                      style: TextStyle(
+                        color: booking.status == 'cancelled' ? Colors.red : Colors.green,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                  child: Text(
-                    booking.status.toUpperCase(),
-                    style: const TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
+                ],
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Divider(thickness: 1, height: 1),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildLocationColumn(originCode, flight.origin.split('(').first.trim()),
+                  Column(
+                    children: [
+                      const Icon(Icons.flight_takeoff, color: AppColors.textLight, size: 20),
+                      Text(
+                        DateFormat('MMM d').format(flight.departureTime),
+                        style: const TextStyle(fontSize: 10, color: AppColors.textLight),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                  _buildLocationColumn(destCode, flight.destination.split('(').first.trim()),
+                ],
+              ),
             ),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              children: [
-                Expanded(child: Divider(thickness: 1, color: Colors.grey)),
-              ],
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Passenger: ${booking.passengers.first.firstName} ${booking.passengers.first.lastName}',
+                        style: const TextStyle(fontSize: 12, color: AppColors.textLight),
+                      ),
+                      if (booking.seats.isNotEmpty)
+                        Text(
+                          'Seats: ${booking.seats.join(', ')}',
+                          style: const TextStyle(fontSize: 10, color: AppColors.textLight),
+                        ),
+                    ],
+                  ),
+                  Text(
+                    '${flight.currency} ${booking.totalPrice.toInt()}',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildLocationColumn('JFK', 'New York'),
-                const Icon(Icons.flight_takeoff, color: AppColors.textLight),
-                _buildLocationColumn('LHR', 'London'),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Passenger: ${booking.passengers.first.firstName} ${booking.passengers.first.lastName}',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textLight),
-                ),
-                Text(
-                  'USD ${booking.totalPrice.toInt()}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -262,6 +262,12 @@ class SearchScreen extends ConsumerWidget {
           isSelected: state.tripType == TripType.oneWay,
           onTap: () => controller.setTripType(TripType.oneWay),
         ),
+        const SizedBox(width: 8),
+        _TripTypeButton(
+          label: 'Multi-city',
+          isSelected: state.tripType == TripType.multiCity,
+          onTap: () => controller.setTripType(TripType.multiCity),
+        ),
       ],
     );
   }
