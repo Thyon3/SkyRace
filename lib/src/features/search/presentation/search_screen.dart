@@ -4,8 +4,10 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import '../../../constants/app_colors.dart';
 import '../domain/search_state.dart';
+import '../domain/location.dart';
 import 'search_controller.dart';
 import 'search_history_controller.dart';
+import 'location_picker.dart';
 
 class SearchScreen extends ConsumerWidget {
   const SearchScreen({super.key});
@@ -46,7 +48,14 @@ class SearchScreen extends ConsumerWidget {
                           icon: Icons.radio_button_unchecked,
                           label: 'From',
                           value: searchState.origin,
-                          onTap: () => controller.setOrigin('New York (JFK)'),
+                          onTap: () async {
+                            final loc = await showModalBottomSheet<Location>(
+                              context: context,
+                              isScrollControlled: true,
+                              builder: (context) => const LocationPicker(title: 'Departure'),
+                            );
+                            if (loc != null) controller.setOrigin(loc.displayName);
+                          },
                         ),
                         const Padding(
                           padding: EdgeInsets.only(left: 40.0),
@@ -57,7 +66,14 @@ class SearchScreen extends ConsumerWidget {
                           icon: Icons.location_on_outlined,
                           label: 'To',
                           value: searchState.destination,
-                          onTap: () => controller.setDestination('London (LHR)'),
+                          onTap: () async {
+                            final loc = await showModalBottomSheet<Location>(
+                              context: context,
+                              isScrollControlled: true,
+                              builder: (context) => const LocationPicker(title: 'Destination'),
+                            );
+                            if (loc != null) controller.setDestination(loc.displayName);
+                          },
                         ),
                         const SizedBox(height: 16),
                         Row(
