@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import '../../../constants/app_colors.dart';
+import '../domain/search_state.dart';
 import 'search_controller.dart';
 
 class SearchScreen extends ConsumerWidget {
@@ -22,41 +23,47 @@ class SearchScreen extends ConsumerWidget {
             children: [
               _buildHeader(),
               Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: _buildTripTypeSelector(searchState, controller),
+              ),
+              Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: BorderSide(color: Colors.grey.shade200),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
                         _buildLocationInput(
                           context,
-                          icon: Icons.flight_takeoff,
+                          icon: Icons.radio_button_unchecked,
                           label: 'From',
                           value: searchState.origin,
-                          onTap: () {
-                            // TODO: Open location picker
-                            controller.setOrigin('New York (JFK)');
-                          },
+                          onTap: () => controller.setOrigin('New York (JFK)'),
                         ),
-                        const Divider(height: 32),
+                        const Padding(
+                          padding: EdgeInsets.only(left: 40.0),
+                          child: Divider(height: 1),
+                        ),
                         _buildLocationInput(
                           context,
-                          icon: Icons.flight_land,
+                          icon: Icons.location_on_outlined,
                           label: 'To',
                           value: searchState.destination,
-                          onTap: () {
-                            // TODO: Open location picker
-                            controller.setDestination('London (LHR)');
-                          },
+                          onTap: () => controller.setDestination('London (LHR)'),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             Expanded(
                               child: _buildDateInput(
                                 context,
+                                icon: Icons.calendar_today_outlined,
                                 label: 'Departure',
                                 date: searchState.departureDate,
                                 onTap: () async {
@@ -66,49 +73,49 @@ class SearchScreen extends ConsumerWidget {
                                     firstDate: DateTime.now(),
                                     lastDate: DateTime.now().add(const Duration(days: 365)),
                                   );
-                                  if (date != null) {
-                                    controller.setDepartureDate(date);
-                                  }
+                                  if (date != null) controller.setDepartureDate(date);
                                 },
                               ),
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildDateInput(
-                                context,
-                                label: 'Return',
-                                date: searchState.returnDate,
-                                onTap: () async {
-                                  final date = await showDatePicker(
-                                    context: context,
-                                    initialDate: searchState.departureDate ?? DateTime.now(),
-                                    firstDate: DateTime.now(),
-                                    lastDate: DateTime.now().add(const Duration(days: 365)),
-                                  );
-                                  if (date != null) {
-                                    controller.setReturnDate(date);
-                                  }
-                                },
+                            if (searchState.tripType == TripType.returnTrip) ...[
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildDateInput(
+                                  context,
+                                  icon: Icons.calendar_today_outlined,
+                                  label: 'Return',
+                                  date: searchState.returnDate,
+                                  onTap: () async {
+                                    final date = await showDatePicker(
+                                      context: context,
+                                      initialDate: searchState.departureDate ?? DateTime.now(),
+                                      firstDate: DateTime.now(),
+                                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                                    );
+                                    if (date != null) controller.setReturnDate(date);
+                                  },
+                                ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
+                        const SizedBox(height: 16),
+                        _buildPassengerInput(searchState, controller),
                         const SizedBox(height: 24),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () {
-                              context.go('/results');
-                            },
+                            onPressed: () => context.go('/results'),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               backgroundColor: AppColors.primary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
+                              elevation: 0,
                             ),
                             child: const Text(
-                              'Search flights',
+                              'Explore',
                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -118,7 +125,7 @@ class SearchScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              _buildRecentSearches(),
+              _buildPopularDestinations(),
             ],
           ),
         ),
@@ -128,36 +135,49 @@ class SearchScreen extends ConsumerWidget {
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(32),
-          bottomRight: Radius.circular(32),
-        ),
-      ),
+      padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: const [
           Text(
-            'Where to next?',
+            'SkyRace',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.primary,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.5,
+            ),
+          ),
+          SizedBox(height: 12),
+          Text(
+            'Search cheap flights\naround the world',
+            style: TextStyle(
+              color: AppColors.textDark,
               fontSize: 28,
               fontWeight: FontWeight.bold,
+              height: 1.2,
             ),
           ),
-          SizedBox(height: 8),
-          Text(
-            'Explore the world at the best prices.',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 16,
-            ),
-          ),
-          SizedBox(height: 24),
         ],
       ),
+    );
+  }
+
+  Widget _buildTripTypeSelector(SearchState state, SearchController controller) {
+    return Row(
+      children: [
+        _TripTypeButton(
+          label: 'Return',
+          isSelected: state.tripType == TripType.returnTrip,
+          onTap: () => controller.setTripType(TripType.returnTrip),
+        ),
+        const SizedBox(width: 8),
+        _TripTypeButton(
+          label: 'One-way',
+          isSelected: state.tripType == TripType.oneWay,
+          onTap: () => controller.setTripType(TripType.oneWay),
+        ),
+      ],
     );
   }
 
@@ -170,40 +190,36 @@ class SearchScreen extends ConsumerWidget {
   }) {
     return InkWell(
       onTap: onTap,
-      child: Row(
-        children: [
-          Icon(icon, color: AppColors.textLight),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: AppColors.textLight,
-                    fontSize: 12,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12.0),
+        child: Row(
+          children: [
+            Icon(icon, color: AppColors.primary, size: 20),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    value ?? label,
+                    style: TextStyle(
+                      color: value != null ? AppColors.textDark : AppColors.textLight,
+                      fontSize: 16,
+                      fontWeight: value != null ? FontWeight.w600 : FontWeight.normal,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value ?? 'Select location',
-                  style: TextStyle(
-                    color: value != null ? AppColors.textDark : Colors.grey,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildDateInput(
     BuildContext context, {
+    required IconData icon,
     required String label,
     DateTime? date,
     required VoidCallback onTap,
@@ -213,26 +229,31 @@ class SearchScreen extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
+          color: Colors.grey.shade50,
           borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade200),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.textLight,
-                fontSize: 12,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              date != null ? DateFormat('MMM d, y').format(date) : 'Select Date',
-              style: const TextStyle(
-                color: AppColors.textDark,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+            Icon(icon, color: AppColors.textLight, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(color: AppColors.textLight, fontSize: 10),
+                  ),
+                  Text(
+                    date != null ? DateFormat('MMM d').format(date) : 'Add date',
+                    style: const TextStyle(
+                      color: AppColors.textDark,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -241,30 +262,56 @@ class SearchScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecentSearches() {
+  Widget _buildPassengerInput(SearchState state, SearchController controller) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.person_outline, color: AppColors.textLight, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              '${state.passengers} Passenger${state.passengers > 1 ? 's' : ''}',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.remove_circle_outline, size: 20),
+            onPressed: state.passengers > 1 ? () => controller.setPassengers(state.passengers - 1) : null,
+          ),
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline, size: 20),
+            onPressed: () => controller.setPassengers(state.passengers + 1),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPopularDestinations() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Recent Searches',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textDark,
-            ),
+            'Popular Destinations',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          // Placeholder for recent searches list
-          Container(
-            height: 100,
+          SizedBox(
+            height: 200,
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
-                _buildRecentSearchCard('London', 'New York'),
-                _buildRecentSearchCard('Paris', 'Tokyo'),
-                _buildRecentSearchCard('Berlin', 'Rome'),
+                _buildDestinationCard('Paris', 'France', 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34'),
+                _buildDestinationCard('Tokyo', 'Japan', 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf'),
+                _buildDestinationCard('Rome', 'Italy', 'https://images.unsplash.com/photo-1552832230-c0197dd311b5'),
               ],
             ),
           ),
@@ -273,36 +320,72 @@ class SearchScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecentSearchCard(String from, String to) {
+  Widget _buildDestinationCard(String city, String country, String imageUrl) {
     return Container(
-      width: 150,
+      width: 160,
       margin: const EdgeInsets.only(right: 16),
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(16),
+        image: DecorationImage(
+          image: NetworkImage(imageUrl),
+          fit: BoxFit.cover,
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            from,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            colors: [Colors.black.withOpacity(0.8), Colors.transparent],
           ),
-          const Icon(Icons.arrow_forward, size: 16, color: AppColors.primary),
-          Text(
-            to,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(city, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            Text(country, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TripTypeButton extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _TripTypeButton({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : Colors.grey.shade300,
           ),
-        ],
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? AppColors.primary : AppColors.textLight,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
       ),
     );
   }

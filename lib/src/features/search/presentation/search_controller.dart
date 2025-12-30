@@ -23,6 +23,10 @@ class SearchController extends StateNotifier<SearchState> {
   void setPassengers(int count) {
     state = state.copyWith(passengers: count);
   }
+
+  void setTripType(TripType type) {
+    state = state.copyWith(tripType: type);
+  }
 }
 
 final searchControllerProvider = StateNotifierProvider<SearchController, SearchState>((ref) {
