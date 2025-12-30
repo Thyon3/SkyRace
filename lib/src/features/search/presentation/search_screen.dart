@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../constants/app_colors.dart';
 import '../domain/search_state.dart';
 import 'search_controller.dart';
+import 'search_history_controller.dart';
 
 class SearchScreen extends ConsumerWidget {
   const SearchScreen({super.key});
@@ -13,6 +14,7 @@ class SearchScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final searchState = ref.watch(searchControllerProvider);
     final controller = ref.read(searchControllerProvider.notifier);
+    final history = ref.watch(searchHistoryProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -105,7 +107,14 @@ class SearchScreen extends ConsumerWidget {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () => context.go('/results'),
+                            onPressed: () {
+                              if (searchState.origin != null && searchState.destination != null) {
+                                ref.read(searchHistoryProvider.notifier).addSearch(
+                                  '${searchState.origin} to ${searchState.destination}',
+                                );
+                              }
+                              context.go('/results');
+                            },
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               backgroundColor: AppColors.primary,
@@ -125,10 +134,41 @@ class SearchScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+              if (history.isNotEmpty) _buildSearchHistory(history, ref),
               _buildPopularDestinations(),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSearchHistory(List<String> history, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Recent Searches', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              TextButton(
+                onPressed: () => ref.read(searchHistoryProvider.notifier).clearHistory(),
+                child: const Text('Clear'),
+              ),
+            ],
+          ),
+          Wrap(
+            spacing: 8,
+            children: history.map((search) => ActionChip(
+              label: Text(search, style: const TextStyle(fontSize: 12)),
+              onPressed: () {
+                // TODO: Populate search fields from history
+              },
+            )).toList(),
+          ),
+        ],
       ),
     );
   }
