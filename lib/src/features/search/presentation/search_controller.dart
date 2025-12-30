@@ -27,6 +27,13 @@ class SearchController extends StateNotifier<SearchState> {
   void setTripType(TripType type) {
     state = state.copyWith(tripType: type);
   }
+
+  void setSearchFromHistory(String search) {
+    final parts = search.split(' to ');
+    if (parts.length == 2) {
+      state = state.copyWith(origin: parts[0], destination: parts[1]);
+    }
+  }
 }
 
 final searchControllerProvider = StateNotifierProvider<SearchController, SearchState>((ref) {

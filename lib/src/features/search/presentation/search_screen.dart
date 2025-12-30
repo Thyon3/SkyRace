@@ -180,9 +180,7 @@ class SearchScreen extends ConsumerWidget {
             spacing: 8,
             children: history.map((search) => ActionChip(
               label: Text(search, style: const TextStyle(fontSize: 12)),
-              onPressed: () {
-                // TODO: Populate search fields from history
-              },
+              onPressed: () => ref.read(searchControllerProvider.notifier).setSearchFromHistory(search),
             )).toList(),
           ),
         ],
