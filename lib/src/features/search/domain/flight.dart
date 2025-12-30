@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class Seat {
   final String number;
   final String type;
@@ -16,7 +18,7 @@ class Seat {
       number: json['number'] ?? '',
       type: json['type'] ?? 'economy',
       isOccupied: json['isOccupied'] ?? false,
-      price: (json['price'] as num).toDouble(),
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }
@@ -36,6 +38,9 @@ class Flight {
   final String fareRules;
   final String refundPolicy;
   final List<Seat> seats;
+  final String status;
+  final String gate;
+  final String terminal;
 
   Flight({
     required this.id,
@@ -52,6 +57,9 @@ class Flight {
     required this.fareRules,
     required this.refundPolicy,
     required this.seats,
+    this.status = 'On Time',
+    this.gate = 'TBD',
+    this.terminal = '1',
   });
 
   factory Flight.fromJson(Map<String, dynamic> json) {
@@ -64,12 +72,21 @@ class Flight {
       departureTime: DateTime.parse(json['departureTime']),
       arrivalTime: DateTime.parse(json['arrivalTime']),
       duration: json['duration'] ?? 0,
-      price: (json['price'] as num).toDouble(),
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
       currency: json['currency'] ?? 'USD',
       isDirect: json['isDirect'] ?? true,
-      fareRules: json['fareRules'] ?? 'Standard fare rules apply.',
-      refundPolicy: json['refundPolicy'] ?? 'Refundable within 24 hours.',
-      seats: (json['seats'] as List?)?.map((e) => Seat.fromJson(e)).toList() ?? [],
+      fareRules: json['fareRules'] ?? '',
+      refundPolicy: json['refundPolicy'] ?? '',
+      seats: (json['seats'] as List?)?.map((s) => Seat.fromJson(s)).toList() ?? [],
+      status: json['status'] ?? 'On Time',
+      gate: json['gate'] ?? 'TBD',
+      terminal: json['terminal'] ?? '1',
     );
+  }
+
+  String get formattedDuration {
+    final hours = duration ~/ 60;
+    final minutes = duration % 60;
+    return '${hours}h ${minutes}m';
   }
 }

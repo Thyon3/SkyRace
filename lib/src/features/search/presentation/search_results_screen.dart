@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import '../../../constants/app_colors.dart';
+import '../../../constants/design_system.dart';
 import '../domain/flight.dart';
 import 'search_results_controller.dart';
 import 'flight_card_shimmer.dart';
@@ -24,16 +25,12 @@ class SearchResultsScreen extends ConsumerWidget {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Price alerts enabled for this search')),
-              );
-            },
+            icon: const Icon(Icons.tune),
+            onPressed: () {},
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50),
+          preferredSize: const Size.fromHeight(60),
           child: _buildFilterBar(ref, controller),
         ),
       ),
@@ -43,7 +40,7 @@ class SearchResultsScreen extends ConsumerWidget {
             return _buildEmptyState();
           }
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(DesignSystem.spacingM),
             itemCount: flights.length,
             itemBuilder: (context, index) {
               return FlightCard(flight: flights[index]);
@@ -53,12 +50,12 @@ class SearchResultsScreen extends ConsumerWidget {
         loading: () => Column(
           children: [
             const Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(DesignSystem.spacingM),
               child: Text('Finding the best deals for you...', style: TextStyle(color: AppColors.textLight)),
             ),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: DesignSystem.spacingM),
                 itemCount: 5,
                 itemBuilder: (context, index) => const FlightCardShimmer(),
               ),
@@ -73,8 +70,8 @@ class SearchResultsScreen extends ConsumerWidget {
   Widget _buildFilterBar(WidgetRef ref, SearchResultsNotifier controller) {
     final currentFilter = controller.currentFilter;
     return Container(
-      height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      height: 60,
+      padding: const EdgeInsets.symmetric(horizontal: DesignSystem.spacingM, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
@@ -104,9 +101,10 @@ class SearchResultsScreen extends ConsumerWidget {
         labelStyle: TextStyle(
           color: isSelected ? AppColors.primary : AppColors.textDark,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          fontSize: 13,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: DesignSystem.radiusFull,
           side: BorderSide(color: isSelected ? AppColors.primary : Colors.grey.shade300),
         ),
       ),
@@ -119,7 +117,7 @@ class SearchResultsScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.flight_takeoff, size: 80, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
+          const SizedBox(height: DesignSystem.spacingM),
           const Text(
             'No flights found',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
@@ -142,27 +140,18 @@ class FlightCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hours = flight.duration ~/ 60;
-    final minutes = flight.duration % 60;
-
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: DesignSystem.spacingM),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: DesignSystem.radiusLarge,
+        boxShadow: DesignSystem.softShadow,
       ),
       child: InkWell(
         onTap: () => context.go('/results/details', extra: flight),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: DesignSystem.radiusLarge,
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(DesignSystem.spacingL),
           child: Column(
             children: [
               Row(
@@ -170,84 +159,79 @@ class FlightCard extends StatelessWidget {
                   Hero(
                     tag: 'airline_icon_${flight.id}',
                     child: Container(
-                      width: 40,
-                      height: 40,
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(
-                        color: AppColors.secondary,
-                        borderRadius: BorderRadius.circular(8),
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: DesignSystem.radiusMedium,
                       ),
                       child: const Icon(Icons.flight, color: AppColors.primary),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: DesignSystem.spacingM),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          flight.airline,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                        Text(
-                          flight.flightNumber,
-                          style: const TextStyle(color: AppColors.textLight, fontSize: 12),
-                        ),
+                        Text(flight.airline, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text(flight.flightNumber, style: DesignSystem.caption),
                       ],
                     ),
                   ),
-                  Text(
-                    '${flight.currency} ${flight.price.toInt()}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      color: AppColors.primary,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${flight.currency} ${flight.price.toInt()}',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: AppColors.primary),
+                      ),
+                      const Text('per person', style: TextStyle(fontSize: 10, color: AppColors.textLight)),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: DesignSystem.spacingXL),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildTimeColumn(
-                    DateFormat('HH:mm').format(flight.departureTime),
-                    flight.origin.split('(').first.trim(),
-                    CrossAxisAlignment.start,
-                  ),
+                  _buildTimeColumn(DateFormat('HH:mm').format(flight.departureTime), flight.origin, CrossAxisAlignment.start),
                   Expanded(
                     child: Column(
                       children: [
-                        Text(
-                          '${hours}h ${minutes}m',
-                          style: const TextStyle(color: AppColors.textLight, fontSize: 12),
-                        ),
+                        Text(flight.formattedDuration, style: DesignSystem.caption),
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Expanded(child: Divider(thickness: 1)),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Icon(Icons.flight_takeoff, size: 16, color: Colors.grey.shade400),
-                            ),
-                            const Expanded(child: Divider(thickness: 1)),
+                            Container(width: 4, height: 4, decoration: const BoxDecoration(color: AppColors.border, shape: BoxShape.circle)),
+                            const Expanded(child: Divider(thickness: 1, color: AppColors.border)),
+                            const Icon(Icons.flight_takeoff, size: 16, color: AppColors.primary),
+                            const Expanded(child: Divider(thickness: 1, color: AppColors.border)),
+                            Container(width: 4, height: 4, decoration: const BoxDecoration(color: AppColors.border, shape: BoxShape.circle)),
                           ],
                         ),
                         Text(
                           flight.isDirect ? 'Direct' : '1 Stop',
-                          style: TextStyle(
-                            color: flight.isDirect ? Colors.green : Colors.orange,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(color: flight.isDirect ? AppColors.success : AppColors.warning, fontSize: 10, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                   ),
-                  _buildTimeColumn(
-                    DateFormat('HH:mm').format(flight.arrivalTime),
-                    flight.destination.split('(').first.trim(),
-                    CrossAxisAlignment.end,
+                  _buildTimeColumn(DateFormat('HH:mm').format(flight.arrivalTime), flight.destination, CrossAxisAlignment.end),
+                ],
+              ),
+              const Divider(height: DesignSystem.spacingXL),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.work_outline, size: 14, color: AppColors.textLight),
+                      const SizedBox(width: 4),
+                      Text('Cabin bag included', style: DesignSystem.caption),
+                    ],
                   ),
+                  if (flight.status != 'On Time')
+                    Text(flight.status, style: const TextStyle(color: AppColors.error, fontSize: 12, fontWeight: FontWeight.bold)),
                 ],
               ),
             ],
@@ -257,18 +241,12 @@ class FlightCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTimeColumn(String time, String city, CrossAxisAlignment align) {
+  Widget _buildTimeColumn(String time, String code, CrossAxisAlignment align) {
     return Column(
       crossAxisAlignment: align,
       children: [
-        Text(
-          time,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark),
-        ),
-        Text(
-          city,
-          style: const TextStyle(color: AppColors.textLight, fontSize: 14),
-        ),
+        Text(time, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+        Text(code, style: const TextStyle(color: AppColors.textLight, fontSize: 14, fontWeight: FontWeight.w500)),
       ],
     );
   }

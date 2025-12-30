@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import '../../../constants/app_colors.dart';
+import '../../../constants/design_system.dart';
 import '../domain/flight.dart';
 
 class FlightDetailsScreen extends StatelessWidget {
@@ -13,167 +14,226 @@ class FlightDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Flight Details'),
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textDark,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share_outlined),
-            onPressed: () {
-              // TODO: Implement share
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeader(),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
+      body: CustomScrollView(
+        slivers: [
+          _buildSliverAppBar(context),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(DesignSystem.spacingM),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildFlightInfoCard(),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Baggage Information',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildBaggageRow(Icons.shopping_bag_outlined, 'Personal item', 'Included'),
-                  _buildBaggageRow(Icons.backpack_outlined, 'Cabin bag', 'Included'),
-                  _buildBaggageRow(Icons.luggage_outlined, 'Checked bag', 'From \$30'),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Fare & Refund Policy',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildPolicyItem(Icons.gavel_outlined, 'Fare Rules', flight.fareRules),
-                  const SizedBox(height: 16),
-                  _buildPolicyItem(Icons.replay_outlined, 'Refund Policy', flight.refundPolicy),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => context.go('/booking', extra: flight),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: const Text('Select this flight', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
+                  _buildStatusBanner(),
+                  const SizedBox(height: DesignSystem.spacingL),
+                  _buildFlightPath(),
+                  const SizedBox(height: DesignSystem.spacingL),
+                  _buildInfoGrid(),
+                  const SizedBox(height: DesignSystem.spacingL),
+                  _buildSectionTitle('Baggage Information'),
+                  _buildBaggageSection(),
+                  const SizedBox(height: DesignSystem.spacingL),
+                  _buildSectionTitle('Fare & Refund Policy'),
+                  _buildPolicySection(),
+                  const SizedBox(height: 100),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
+      bottomSheet: _buildBottomAction(context),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildSliverAppBar(BuildContext context) {
+    return SliverAppBar(
+      expandedHeight: 120,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: Colors.white,
+      foregroundColor: AppColors.textDark,
+      flexibleSpace: FlexibleSpaceBar(
+        title: Text(
+          'Flight ${flight.flightNumber}',
+          style: DesignSystem.heading2.copyWith(fontSize: 18),
+        ),
+        centerTitle: true,
+      ),
+      actions: [
+        IconButton(icon: const Icon(Icons.share_outlined), onPressed: () {}),
+      ],
+    );
+  }
+
+  Widget _buildStatusBanner() {
     return Container(
-      width: double.infinity,
-      color: Colors.white,
-      padding: const EdgeInsets.all(24),
-      child: Column(
+      padding: const EdgeInsets.all(DesignSystem.spacingM),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.1),
+        borderRadius: DesignSystem.radiusMedium,
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+      ),
+      child: Row(
         children: [
-          Hero(
-            tag: 'airline_icon_${flight.id}',
-            child: Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: AppColors.secondary,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.flight, color: AppColors.primary, size: 32),
+          const Icon(Icons.info_outline, color: AppColors.primary),
+          const SizedBox(width: DesignSystem.spacingM),
+          Expanded(
+            child: Text(
+              'This flight is currently ${flight.status}. Gate ${flight.gate}, Terminal ${flight.terminal}.',
+              style: const TextStyle(color: AppColors.primaryDark, fontWeight: FontWeight.w500),
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildLocation(flight.origin, DateFormat('HH:mm').format(flight.departureTime)),
-              const Icon(Icons.arrow_forward, color: AppColors.primary, size: 24),
-              _buildLocation(flight.destination, DateFormat('HH:mm').format(flight.arrivalTime)),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            DateFormat('EEEE, MMM d, y').format(flight.departureTime),
-            style: const TextStyle(color: AppColors.textLight),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLocation(String location, String time) {
+  Widget _buildFlightPath() {
+    return Container(
+      padding: const EdgeInsets.all(DesignSystem.spacingL),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: DesignSystem.radiusLarge,
+        boxShadow: DesignSystem.softShadow,
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildLocationPoint(flight.origin, flight.departureTime, 'Departure'),
+              Column(
+                children: [
+                  Text(flight.formattedDuration, style: DesignSystem.caption),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle)),
+                      Container(width: 80, height: 2, color: AppColors.primary.withOpacity(0.3)),
+                      const Icon(Icons.flight_takeoff, color: AppColors.primary, size: 20),
+                      Container(width: 80, height: 2, color: AppColors.primary.withOpacity(0.3)),
+                      Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle)),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(flight.isDirect ? 'Direct' : '1 Stop', style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 12)),
+                ],
+              ),
+              _buildLocationPoint(flight.destination, flight.arrivalTime, 'Arrival'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocationPoint(String code, DateTime time, String label) {
     return Column(
       children: [
-        Text(time, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-        Text(location.split('(').first.trim(), style: const TextStyle(color: AppColors.textLight)),
+        Text(DateFormat('HH:mm').format(time), style: DesignSystem.heading2),
+        Text(code, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+        Text(label, style: DesignSystem.caption),
       ],
     );
   }
 
-  Widget _buildFlightInfoCard() {
-    final hours = flight.duration ~/ 60;
-    final minutes = flight.duration % 60;
-    
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            _buildInfoRow(Icons.airline_seat_recline_normal, 'Airline', flight.airline),
-            const Divider(height: 24),
-            _buildInfoRow(Icons.confirmation_number_outlined, 'Flight Number', flight.flightNumber),
-            const Divider(height: 24),
-            _buildInfoRow(Icons.timer_outlined, 'Duration', '${hours}h ${minutes}m'),
-            const Divider(height: 24),
-            _buildInfoRow(Icons.attach_money, 'Price', '${flight.currency} ${flight.price}'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
+  Widget _buildInfoGrid() {
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: DesignSystem.spacingM,
+      crossAxisSpacing: DesignSystem.spacingM,
+      childAspectRatio: 2.5,
       children: [
-        Icon(icon, color: AppColors.textLight, size: 20),
-        const SizedBox(width: 12),
-        Text(label, style: const TextStyle(color: AppColors.textLight)),
-        const Spacer(),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        _buildGridItem(Icons.airline_seat_recline_normal, 'Airline', flight.airline),
+        _buildGridItem(Icons.meeting_room_outlined, 'Terminal', flight.terminal),
+        _buildGridItem(Icons.door_sliding_outlined, 'Gate', flight.gate),
+        _buildGridItem(Icons.airplane_ticket_outlined, 'Class', 'Economy'),
       ],
+    );
+  }
+
+  Widget _buildGridItem(IconData icon, String label, String value) {
+    return Container(
+      padding: const EdgeInsets.all(DesignSystem.spacingM),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: DesignSystem.radiusMedium,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.primary, size: 20),
+          const SizedBox(width: DesignSystem.spacingM),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(label, style: DesignSystem.caption),
+              Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: DesignSystem.spacingM),
+      child: Text(title, style: DesignSystem.heading2.copyWith(fontSize: 18)),
+    );
+  }
+
+  Widget _buildBaggageSection() {
+    return Container(
+      padding: const EdgeInsets.all(DesignSystem.spacingM),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: DesignSystem.radiusLarge,
+        boxShadow: DesignSystem.softShadow,
+      ),
+      child: Column(
+        children: [
+          _buildBaggageRow(Icons.shopping_bag_outlined, 'Personal item', 'Included'),
+          const Divider(),
+          _buildBaggageRow(Icons.backpack_outlined, 'Cabin bag', 'Included'),
+          const Divider(),
+          _buildBaggageRow(Icons.luggage_outlined, 'Checked bag', 'From \$30'),
+        ],
+      ),
     );
   }
 
   Widget _buildBaggageRow(IconData icon, String label, String status) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
           Icon(icon, size: 20, color: AppColors.textLight),
-          const SizedBox(width: 12),
-          Text(label, style: const TextStyle(color: AppColors.textDark)),
+          const SizedBox(width: DesignSystem.spacingM),
+          Text(label),
           const Spacer(),
-          Text(status, style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+          Text(status, style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPolicySection() {
+    return Container(
+      padding: const EdgeInsets.all(DesignSystem.spacingM),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: DesignSystem.radiusLarge,
+        boxShadow: DesignSystem.softShadow,
+      ),
+      child: Column(
+        children: [
+          _buildPolicyItem(Icons.gavel_outlined, 'Fare Rules', flight.fareRules),
+          const Divider(height: 32),
+          _buildPolicyItem(Icons.replay_outlined, 'Refund Policy', flight.refundPolicy),
         ],
       ),
     );
@@ -184,18 +244,60 @@ class FlightDetailsScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, color: AppColors.primary, size: 20),
-        const SizedBox(width: 12),
+        const SizedBox(width: DesignSystem.spacingM),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              Text(description, style: const TextStyle(color: AppColors.textLight, fontSize: 14)),
+              Text(description, style: DesignSystem.bodyMedium),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildBottomAction(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(DesignSystem.spacingL),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5)),
+        ],
+      ),
+      child: Row(
+        children: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Total Price', style: TextStyle(color: AppColors.textLight)),
+              Text(
+                '${flight.currency} ${flight.price}',
+                style: DesignSystem.heading2.copyWith(color: AppColors.primary),
+              ),
+            ],
+          ),
+          const SizedBox(width: DesignSystem.spacingL),
+          Expanded(
+            child: SizedBox(
+              height: 56,
+              child: ElevatedButton(
+                onPressed: () => context.go('/booking', extra: flight),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: DesignSystem.radiusMedium),
+                  elevation: 0,
+                ),
+                child: const Text('Book Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

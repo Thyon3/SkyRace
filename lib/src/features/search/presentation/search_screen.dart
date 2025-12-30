@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import '../../../constants/app_colors.dart';
+import '../../../constants/design_system.dart';
 import '../domain/search_state.dart';
 import '../domain/location.dart';
 import 'search_controller.dart';
@@ -21,282 +22,229 @@ class SearchScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: _buildTripTypeSelector(searchState, controller),
+      body: CustomScrollView(
+        slivers: [
+          _buildSliverAppBar(),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(DesignSystem.spacingM),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTripTypeSelector(searchState, controller),
+                  const SizedBox(height: DesignSystem.spacingM),
+                  _buildSearchCard(context, searchState, controller),
+                  const SizedBox(height: DesignSystem.spacingL),
+                  _buildSectionTitle('Recent Searches', history.isNotEmpty),
+                  _buildSearchHistory(history, ref, context),
+                  const SizedBox(height: DesignSystem.spacingL),
+                  _buildSectionTitle('Popular Destinations', true),
+                  _buildPopularDestinations(controller),
+                  const SizedBox(height: DesignSystem.spacingXL),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Card(
-                  elevation: 0,
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: Colors.grey.shade200),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSliverAppBar() {
+    return SliverAppBar(
+      expandedHeight: 200.0,
+      floating: false,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: AppColors.primary,
+      flexibleSpace: FlexibleSpaceBar(
+        title: Text('SkyRace', style: DesignSystem.heading2.copyWith(color: Colors.white)),
+        background: Stack(
+          fit: StackFit.expand,
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.primaryGradient,
+              ),
+            ),
+            Positioned(
+              right: -50,
+              top: -50,
+              child: Icon(Icons.flight_takeoff, size: 200, color: Colors.white.withOpacity(0.1)),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(DesignSystem.spacingL),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Where to next?',
+                    style: DesignSystem.heading1.copyWith(color: Colors.white),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        _buildLocationInput(
-                          context,
-                          icon: Icons.radio_button_unchecked,
-                          label: 'From',
-                          value: searchState.origin,
-                          onTap: () async {
-                            final loc = await showModalBottomSheet<Location>(
-                              context: context,
-                              isScrollControlled: true,
-                              builder: (context) => const LocationPicker(title: 'Departure'),
-                            );
-                            if (loc != null) controller.setOrigin(loc.displayName);
-                          },
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.only(left: 40.0),
-                          child: Divider(height: 1),
-                        ),
-                        _buildLocationInput(
-                          context,
-                          icon: Icons.location_on_outlined,
-                          label: 'To',
-                          value: searchState.destination,
-                          onTap: () async {
-                            final loc = await showModalBottomSheet<Location>(
-                              context: context,
-                              isScrollControlled: true,
-                              builder: (context) => const LocationPicker(title: 'Destination'),
-                            );
-                            if (loc != null) controller.setDestination(loc.displayName);
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildDateInput(
-                                context,
-                                icon: Icons.calendar_today_outlined,
-                                label: 'Departure',
-                                date: searchState.departureDate,
-                                onTap: () async {
-                                  final date = await showDatePicker(
-                                    context: context,
-                                    initialDate: DateTime.now(),
-                                    firstDate: DateTime.now(),
-                                    lastDate: DateTime.now().add(const Duration(days: 365)),
-                                  );
-                                  if (date != null) controller.setDepartureDate(date);
-                                },
-                              ),
-                            ),
-                            if (searchState.tripType == TripType.returnTrip) ...[
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildDateInput(
-                                  context,
-                                  icon: Icons.calendar_today_outlined,
-                                  label: 'Return',
-                                  date: searchState.returnDate,
-                                  onTap: () async {
-                                    final date = await showDatePicker(
-                                      context: context,
-                                      initialDate: searchState.departureDate ?? DateTime.now(),
-                                      firstDate: DateTime.now(),
-                                      lastDate: DateTime.now().add(const Duration(days: 365)),
-                                    );
-                                    if (date != null) controller.setReturnDate(date);
-                                  },
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        _buildPassengerInput(context, searchState, controller),
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              if (searchState.origin != null && searchState.destination != null) {
-                                ref.read(searchHistoryProvider.notifier).addSearch(
-                                  '${searchState.origin} to ${searchState.destination}',
-                                );
-                              }
-                              context.go('/results');
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              backgroundColor: AppColors.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: const Text(
-                              'Explore',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: DesignSystem.spacingXS),
+                  Text(
+                    'Find the best deals on flights worldwide',
+                    style: DesignSystem.bodyMedium.copyWith(color: Colors.white.withOpacity(0.8)),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title, bool showAction) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: DesignSystem.spacingM),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title, style: DesignSystem.heading2.copyWith(fontSize: 20)),
+          if (showAction)
+            TextButton(
+              onPressed: () {},
+              child: const Text('See all'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchCard(BuildContext context, SearchState state, SearchController controller) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: DesignSystem.radiusLarge,
+        boxShadow: DesignSystem.mediumShadow,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(DesignSystem.spacingL),
+        child: Column(
+          children: [
+            _buildLocationField(
+              context,
+              icon: Icons.radio_button_unchecked,
+              label: 'From',
+              value: state.origin,
+              onTap: () async {
+                final loc = await showModalBottomSheet<Location>(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) => const LocationPicker(title: 'Departure'),
+                );
+                if (loc != null) controller.setOrigin(loc.displayName);
+              },
+            ),
+            const Padding(
+              padding: EdgeInsets.only(left: 40),
+              child: Divider(height: 1, color: AppColors.border),
+            ),
+            _buildLocationField(
+              context,
+              icon: Icons.location_on_outlined,
+              label: 'To',
+              value: state.destination,
+              onTap: () async {
+                final loc = await showModalBottomSheet<Location>(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) => const LocationPicker(title: 'Destination'),
+                );
+                if (loc != null) controller.setDestination(loc.displayName);
+              },
+            ),
+            const SizedBox(height: DesignSystem.spacingM),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildDateField(
+                    context,
+                    label: 'Departure',
+                    date: state.departureDate,
+                    onTap: () async {
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (date != null) controller.setDepartureDate(date);
+                    },
+                  ),
+                ),
+                if (state.tripType == TripType.returnTrip) ...[
+                  const SizedBox(width: DesignSystem.spacingM),
+                  Expanded(
+                    child: _buildDateField(
+                      context,
+                      label: 'Return',
+                      date: state.returnDate,
+                      onTap: () async {
+                        final date = await showDatePicker(
+                          context: context,
+                          initialDate: state.departureDate ?? DateTime.now(),
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                        );
+                        if (date != null) controller.setReturnDate(date);
+                      },
                     ),
                   ),
-                ),
-              ),
-              _buildSearchHistory(history, ref, context),
-              _buildPopularDestinations(controller),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchHistory(List<String> history, WidgetRef ref, BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Recent Searches', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              if (history.isNotEmpty)
-                TextButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Clear History'),
-                        content: const Text('Are you sure you want to clear your search history?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              ref.read(searchHistoryProvider.notifier).clearHistory();
-                            },
-                            child: const Text('Clear', style: TextStyle(color: AppColors.error)),
-                          ),
-                        ],
-                      ),
+                ],
+              ],
+            ),
+            const SizedBox(height: DesignSystem.spacingM),
+            _buildPassengerField(context, state, controller),
+            const SizedBox(height: DesignSystem.spacingL),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: () {
+                  if (state.origin != null && state.destination != null) {
+                    ref.read(searchHistoryProvider.notifier).addSearch(
+                      '${state.origin} to ${state.destination}',
                     );
-                  },
-                  child: const Text('Clear'),
+                  }
+                  context.go('/results');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: DesignSystem.radiusMedium),
+                  elevation: 0,
                 ),
-            ],
-          ),
-          if (history.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16.0),
-              child: Text('Your recent searches will appear here', style: TextStyle(color: AppColors.textLight)),
-            )
-          else
-            Wrap(
-              spacing: 8,
-              children: history.map((search) => ActionChip(
-                label: Text(search, style: const TextStyle(fontSize: 12)),
-                onPressed: () => ref.read(searchControllerProvider.notifier).setSearchFromHistory(search),
-                onDeleted: () => ref.read(searchHistoryProvider.notifier).removeSearch(search),
-                deleteIcon: const Icon(Icons.close, size: 14),
-              )).toList(),
+                child: const Text('Search Flights', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
-            'SkyRace',
-            style: TextStyle(
-              color: AppColors.primary,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.5,
-            ),
-          ),
-          SizedBox(height: 12),
-          Text(
-            'Search cheap flights\naround the world',
-            style: TextStyle(
-              color: AppColors.textDark,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              height: 1.2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTripTypeSelector(SearchState state, SearchController controller) {
-    return Row(
-      children: [
-        _TripTypeButton(
-          label: 'Return',
-          isSelected: state.tripType == TripType.returnTrip,
-          onTap: () => controller.setTripType(TripType.returnTrip),
-        ),
-        const SizedBox(width: 8),
-        _TripTypeButton(
-          label: 'One-way',
-          isSelected: state.tripType == TripType.oneWay,
-          onTap: () => controller.setTripType(TripType.oneWay),
-        ),
-        const SizedBox(width: 8),
-        _TripTypeButton(
-          label: 'Multi-city',
-          isSelected: state.tripType == TripType.multiCity,
-          onTap: () => controller.setTripType(TripType.multiCity),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLocationInput(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    String? value,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildLocationField(BuildContext context, {required IconData icon, required String label, String? value, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0),
+        padding: const EdgeInsets.symmetric(vertical: DesignSystem.spacingM),
         child: Row(
           children: [
-            Icon(icon, color: AppColors.primary, size: 20),
-            const SizedBox(width: 16),
+            Icon(icon, color: AppColors.primary, size: 24),
+            const SizedBox(width: DesignSystem.spacingM),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(label, style: DesignSystem.caption),
                   Text(
-                    value ?? label,
-                    style: TextStyle(
+                    value ?? 'Select City',
+                    style: DesignSystem.bodyLarge.copyWith(
+                      fontWeight: value != null ? FontWeight.bold : FontWeight.normal,
                       color: value != null ? AppColors.textDark : AppColors.textLight,
-                      fontSize: 16,
-                      fontWeight: value != null ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ],
@@ -308,44 +256,30 @@ class SearchScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDateInput(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    DateTime? date,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildDateField(BuildContext context, {required String label, DateTime? date, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(DesignSystem.spacingM),
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade200),
+          color: AppColors.background,
+          borderRadius: DesignSystem.radiusMedium,
+          border: Border.all(color: AppColors.border),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: AppColors.textLight, size: 18),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(color: AppColors.textLight, fontSize: 10),
-                  ),
-                  Text(
-                    date != null ? DateFormat('MMM d').format(date) : 'Add date',
-                    style: const TextStyle(
-                      color: AppColors.textDark,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
+            Text(label, style: DesignSystem.caption),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Text(
+                  date != null ? DateFormat('MMM d, y').format(date) : 'Add date',
+                  style: DesignSystem.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
           ],
         ),
@@ -353,7 +287,7 @@ class SearchScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPassengerInput(BuildContext context, SearchState state, SearchController controller) {
+  Widget _buildPassengerField(BuildContext context, SearchState state, SearchController controller) {
     return InkWell(
       onTap: () async {
         final passengers = await showModalBottomSheet<int>(
@@ -363,20 +297,26 @@ class SearchScreen extends ConsumerWidget {
         if (passengers != null) controller.setPassengers(passengers);
       },
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(DesignSystem.spacingM),
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade200),
+          color: AppColors.background,
+          borderRadius: DesignSystem.radiusMedium,
+          border: Border.all(color: AppColors.border),
         ),
         child: Row(
           children: [
-            const Icon(Icons.person_outline, color: AppColors.textLight, size: 20),
-            const SizedBox(width: 12),
+            const Icon(Icons.person_outline, color: AppColors.primary),
+            const SizedBox(width: DesignSystem.spacingM),
             Expanded(
-              child: Text(
-                '${state.passengers} Passenger${state.passengers > 1 ? 's' : ''}',
-                style: const TextStyle(fontWeight: FontWeight.w600),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Passengers', style: DesignSystem.caption),
+                  Text(
+                    '${state.passengers} Passenger${state.passengers > 1 ? 's' : ''}',
+                    style: DesignSystem.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
             ),
             const Icon(Icons.keyboard_arrow_down, color: AppColors.textLight),
@@ -386,104 +326,126 @@ class SearchScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPopularDestinations(SearchController controller) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Popular Destinations',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 200,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                _buildDestinationCard('Paris', 'France', 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34', () => controller.setDestination('Paris (CDG)')),
-                _buildDestinationCard('Tokyo', 'Japan', 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf', () => controller.setDestination('Tokyo (NRT)')),
-                _buildDestinationCard('Rome', 'Italy', 'https://images.unsplash.com/photo-1552832230-c0197dd311b5', () => controller.setDestination('Rome (FCO)')),
-              ],
-            ),
-          ),
-        ],
+  Widget _buildTripTypeSelector(SearchState state, SearchController controller) {
+    return Row(
+      children: [
+        _TripTypeChip(
+          label: 'Return',
+          isSelected: state.tripType == TripType.returnTrip,
+          onTap: () => controller.setTripType(TripType.returnTrip),
+        ),
+        const SizedBox(width: DesignSystem.spacingS),
+        _TripTypeChip(
+          label: 'One-way',
+          isSelected: state.tripType == TripType.oneWay,
+          onTap: () => controller.setTripType(TripType.oneWay),
+        ),
+        const SizedBox(width: DesignSystem.spacingS),
+        _TripTypeChip(
+          label: 'Multi-city',
+          isSelected: state.tripType == TripType.multiCity,
+          onTap: () => controller.setTripType(TripType.multiCity),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchHistory(List<String> history, WidgetRef ref, BuildContext context) {
+    if (history.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(DesignSystem.spacingM),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: DesignSystem.radiusMedium,
+          border: Border.all(color: AppColors.border),
+        ),
+        child: const Text('Your recent searches will appear here', style: TextStyle(color: AppColors.textLight)),
+      );
+    }
+    return SizedBox(
+      height: 40,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: history.length,
+        separatorBuilder: (_, __) => const SizedBox(width: DesignSystem.spacingS),
+        itemBuilder: (context, index) => ActionChip(
+          label: Text(history[index]),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: DesignSystem.radiusFull, side: const BorderSide(color: AppColors.border)),
+          onPressed: () => ref.read(searchControllerProvider.notifier).setSearchFromHistory(history[index]),
+        ),
       ),
     );
   }
 
-  Widget _buildDestinationCard(String city, String country, String imageUrl, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: 160,
-        margin: const EdgeInsets.only(right: 16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          image: DecorationImage(
-            image: NetworkImage(imageUrl),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-              colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+  Widget _buildPopularDestinations(SearchController controller) {
+    final destinations = [
+      {'city': 'Paris', 'country': 'France', 'image': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34', 'code': 'CDG'},
+      {'city': 'Tokyo', 'country': 'Japan', 'image': 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf', 'code': 'NRT'},
+      {'city': 'Rome', 'country': 'Italy', 'image': 'https://images.unsplash.com/photo-1552832230-c0197dd311b5', 'code': 'FCO'},
+      {'city': 'New York', 'country': 'USA', 'image': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9', 'code': 'JFK'},
+    ];
+
+    return SizedBox(
+      height: 240,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: destinations.length,
+        separatorBuilder: (_, __) => const SizedBox(width: DesignSystem.spacingM),
+        itemBuilder: (context, index) {
+          final dest = destinations[index];
+          return InkWell(
+            onTap: () => controller.setDestination('${dest['city']} (${dest['code']})'),
+            child: Container(
+              width: 180,
+              decoration: BoxDecoration(
+                borderRadius: DesignSystem.radiusLarge,
+                image: DecorationImage(image: NetworkImage(dest['image']!), fit: BoxFit.cover),
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: DesignSystem.radiusLarge,
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+                  ),
+                ),
+                padding: const EdgeInsets.all(DesignSystem.spacingM),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(dest['city']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                    Text(dest['country']!, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+                  ],
+                ),
+              ),
             ),
-          ),
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(city, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-              Text(country, style: const TextStyle(color: Colors.white70, fontSize: 12)),
-            ],
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 }
 
-class _TripTypeButton extends StatelessWidget {
+class _TripTypeChip extends StatelessWidget {
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _TripTypeButton({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
+  const _TripTypeChip({required this.label, required this.isSelected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.grey.shade300,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? AppColors.primary : AppColors.textLight,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ),
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => onTap(),
+      selectedColor: AppColors.primary,
+      backgroundColor: Colors.white,
+      labelStyle: TextStyle(color: isSelected ? Colors.white : AppColors.textMedium, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
+      shape: RoundedRectangleBorder(borderRadius: DesignSystem.radiusFull, side: BorderSide(color: isSelected ? AppColors.primary : AppColors.border)),
     );
   }
 }
