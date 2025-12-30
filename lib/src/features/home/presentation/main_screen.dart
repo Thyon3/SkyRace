@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../search/presentation/search_screen.dart';
 import '../../bookings/presentation/my_bookings_screen.dart';
 import '../../auth/presentation/auth_controller.dart';
@@ -51,11 +52,16 @@ class ProfileScreen extends ConsumerWidget {
     final user = authState.value;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        title: const Text('Profile'),
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.textDark,
+      ),
       body: user == null
           ? Center(
               child: ElevatedButton(
-                onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+                onPressed: () => context.go('/login'),
                 child: const Text('Login'),
               ),
             )
@@ -63,14 +69,38 @@ class ProfileScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  const CircleAvatar(
-                    radius: 50,
-                    backgroundColor: AppColors.secondary,
-                    child: Icon(Icons.person, size: 50, color: AppColors.primary),
+                  Center(
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: AppColors.primary.withOpacity(0.1),
+                          child: const Icon(Icons.person, size: 50, color: AppColors.primary),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  Text(user.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text(user.email, style: const TextStyle(color: AppColors.textLight)),
+                  Text(
+                    user.name,
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    user.email,
+                    style: const TextStyle(color: AppColors.textLight),
+                  ),
                   const SizedBox(height: 32),
                   SwitchListTile(
                     title: const Text('Dark Mode'),
