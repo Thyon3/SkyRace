@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import '../../../constants/app_colors.dart';
 import '../domain/flight.dart';
 import 'search_results_controller.dart';
@@ -13,13 +14,21 @@ class SearchResultsScreen extends ConsumerWidget {
     final flightsAsync = ref.watch(searchResultsProvider);
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Search Results'),
+        title: const Text('Available Flights'),
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.textDark,
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(50),
+          child: _buildFilterBar(),
+        ),
       ),
       body: flightsAsync.when(
         data: (flights) {
           if (flights.isEmpty) {
-            return const Center(child: Text('No flights found'));
+            return _buildEmptyState();
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -29,8 +38,49 @@ class SearchResultsScreen extends ConsumerWidget {
             },
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
         error: (err, stack) => Center(child: Text('Error: $err')),
+      ),
+    );
+  }
+
+  Widget _buildFilterBar() {
+    return Container(
+      height: 50,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          _FilterChip(label: 'Cheapest', isSelected: true),
+          _FilterChip(label: 'Fastest', isSelected: false),
+          _FilterChip(label: 'Direct only', isSelected: false),
+          _FilterChip(label: 'Airlines', isSelected: false),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.flight_takeoff, size: 80, color: Colors.grey.shade300),
+          const SizedBox(height: 16),
+          const Text(
+            'No flights found',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Try adjusting your search criteria',
+            style: TextStyle(color: AppColors.textLight),
+          ),
+        ],
       ),
     );
   }
@@ -47,69 +97,150 @@ class FlightCard extends StatelessWidget {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: InkWell(
         onTap: () => context.go('/results/book', extra: flight),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  flight.airline,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  '${flight.currency} ${flight.price}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: AppColors.primary,
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.flight, color: AppColors.primary),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      DateFormat('HH:mm').format(flight.departureTime),
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          flight.airline,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        Text(
+                          flight.flightNumber,
+                          style: const TextStyle(color: AppColors.textLight, fontSize: 12),
+                        ),
+                      ],
                     ),
-                    Text(flight.origin),
-                  ],
-                ),
-                Column(
-                  children: [
-                    Text(
-                      '${hours}h ${minutes}m',
-                      style: const TextStyle(color: Colors.grey),
+                  ),
+                  Text(
+                    '${flight.currency} ${flight.price.toInt()}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: AppColors.primary,
                     ),
-                    const Icon(Icons.flight_takeoff, color: Colors.grey),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      DateFormat('HH:mm').format(flight.arrivalTime),
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildTimeColumn(
+                    DateFormat('HH:mm').format(flight.departureTime),
+                    flight.origin.split('(').first.trim(),
+                    CrossAxisAlignment.start,
+                  ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Text(
+                          '${hours}h ${minutes}m',
+                          style: const TextStyle(color: AppColors.textLight, fontSize: 12),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Expanded(child: Divider(thickness: 1)),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Icon(Icons.flight_takeoff, size: 16, color: Colors.grey.shade400),
+                            ),
+                            const Expanded(child: Divider(thickness: 1)),
+                          ],
+                        ),
+                        const Text(
+                          'Direct',
+                          style: TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
-                    Text(flight.destination),
-                  ],
-                ),
-              ],
-            ),
-          ],
+                  ),
+                  _buildTimeColumn(
+                    DateFormat('HH:mm').format(flight.arrivalTime),
+                    flight.destination.split('(').first.trim(),
+                    CrossAxisAlignment.end,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimeColumn(String time, String city, CrossAxisAlignment align) {
+    return Column(
+      crossAxisAlignment: align,
+      children: [
+        Text(
+          time,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textDark),
+        ),
+        Text(
+          city,
+          style: const TextStyle(color: AppColors.textLight, fontSize: 14),
+        ),
+      ],
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+
+  const _FilterChip({required this.label, required this.isSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8, top: 10, bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: isSelected ? AppColors.primary : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? Colors.white : AppColors.textDark,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          fontSize: 13,
         ),
       ),
     );
