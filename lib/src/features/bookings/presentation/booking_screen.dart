@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import '../../../constants/app_colors.dart';
 import '../../search/domain/flight.dart';
 import '../domain/booking.dart';
@@ -20,15 +20,15 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
-  final _passportController = TextEditingController();
   final _emailController = TextEditingController();
+  final _passportController = TextEditingController();
 
   @override
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
-    _passportController.dispose();
     _emailController.dispose();
+    _passportController.dispose();
     super.dispose();
   }
 
@@ -36,10 +36,10 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   Widget build(BuildContext context) {
     final bookingState = ref.watch(bookingControllerProvider);
 
-    ref.listen<AsyncValue<Booking?>>(bookingControllerProvider, (previous, next) {
+    ref.listen<AsyncValue>(bookingControllerProvider, (previous, next) {
       next.whenOrNull(
-        data: (booking) {
-          if (booking != null) {
+        data: (success) {
+          if (success == true) {
             _showSuccessDialog();
           }
         },
@@ -189,19 +189,31 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                widget.flight.airline,
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.secondary,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.flight, color: AppColors.primary, size: 20),
               ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(widget.flight.airline, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(widget.flight.flightNumber, style: const TextStyle(color: AppColors.textLight, fontSize: 12)),
+                ],
+              ),
+              const Spacer(),
               Text(
                 DateFormat('EEE, MMM d').format(widget.flight.departureTime),
                 style: const TextStyle(color: AppColors.textLight),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Row(
             children: [
               _buildLocationSummary(widget.flight.origin, DateFormat('HH:mm').format(widget.flight.departureTime)),
