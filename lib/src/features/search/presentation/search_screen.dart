@@ -209,6 +209,8 @@ class SearchScreen extends ConsumerWidget {
               children: history.map((search) => ActionChip(
                 label: Text(search, style: const TextStyle(fontSize: 12)),
                 onPressed: () => ref.read(searchControllerProvider.notifier).setSearchFromHistory(search),
+                onDeleted: () => ref.read(searchHistoryProvider.notifier).removeSearch(search),
+                deleteIcon: const Icon(Icons.close, size: 14),
               )).toList(),
             ),
         ],
