@@ -171,7 +171,28 @@ class SearchScreen extends ConsumerWidget {
             children: [
               const Text('Recent Searches', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               TextButton(
-                onPressed: () => ref.read(searchHistoryProvider.notifier).clearHistory(),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Clear History'),
+                      content: const Text('Are you sure you want to clear your search history?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            ref.read(searchHistoryProvider.notifier).clearHistory();
+                          },
+                          child: const Text('Clear', style: TextStyle(color: AppColors.error)),
+                        ),
+                      ],
+                    ),
+                  );
+                },
                 child: const Text('Clear'),
               ),
             ],
