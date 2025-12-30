@@ -116,7 +116,7 @@ class FlightCard extends StatelessWidget {
         ],
       ),
       child: InkWell(
-        onTap: () => context.go('/results/book', extra: flight),
+        onTap: () => context.go('/results/details', extra: flight),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(20.0),

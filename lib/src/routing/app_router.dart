@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../features/search/presentation/search_screen.dart';
 import '../features/search/presentation/search_results_screen.dart';
 import '../features/bookings/presentation/booking_screen.dart';
@@ -9,6 +9,7 @@ import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/auth_controller.dart';
 import '../features/home/presentation/main_screen.dart';
+import '../features/search/presentation/flight_details_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authControllerProvider);
@@ -41,6 +42,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: 'results',
             builder: (context, state) => const SearchResultsScreen(),
             routes: [
+              GoRoute(
+                path: 'details',
+                builder: (context, state) {
+                  final flight = state.extra as Flight;
+                  return FlightDetailsScreen(flight: flight);
+                },
+              ),
               GoRoute(
                 path: 'book',
                 builder: (context, state) {
