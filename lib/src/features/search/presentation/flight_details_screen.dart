@@ -18,6 +18,14 @@ class FlightDetailsScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textDark,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share_outlined),
+            onPressed: () {
+              // TODO: Implement share
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
