@@ -30,16 +30,19 @@ class FlightDetailsScreen extends StatelessWidget {
                 children: [
                   _buildFlightInfoCard(),
                   const SizedBox(height: 24),
-                  const Text('Baggage Allowance', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 12),
-                  _buildBaggageItem(Icons.shopping_bag_outlined, 'Personal item', 'Included'),
-                  _buildBaggageItem(Icons.luggage_outlined, 'Cabin bag', 'Included'),
-                  _buildBaggageItem(Icons.work_outline, 'Checked bag', 'From \$35'),
+                  const Text(
+                    'Baggage Information',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildBaggageRow(Icons.shopping_bag_outlined, 'Personal item', 'Included'),
+                  _buildBaggageRow(Icons.backpack_outlined, 'Cabin bag', 'Included'),
+                  _buildBaggageRow(Icons.luggage_outlined, 'Checked bag', 'From \$30'),
                   const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => context.go('/results/book', extra: flight),
+                      onPressed: () => context.go('/booking', extra: flight),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor: AppColors.primary,
@@ -140,16 +143,16 @@ class FlightDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBaggageItem(IconData icon, String label, String status) {
+  Widget _buildBaggageRow(IconData icon, String label, String status) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.primary, size: 20),
+          Icon(icon, size: 20, color: AppColors.textLight),
           const SizedBox(width: 12),
-          Text(label),
+          Text(label, style: const TextStyle(color: AppColors.textDark)),
           const Spacer(),
-          Text(status, style: TextStyle(color: status == 'Included' ? Colors.green : AppColors.textLight, fontWeight: FontWeight.bold)),
+          Text(status, style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
         ],
       ),
     );
