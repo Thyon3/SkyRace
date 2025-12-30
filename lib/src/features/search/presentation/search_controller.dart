@@ -1,0 +1,30 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../domain/search_state.dart';
+
+class SearchController extends StateNotifier<SearchState> {
+  SearchController() : super(SearchState());
+
+  void setOrigin(String origin) {
+    state = state.copyWith(origin: origin);
+  }
+
+  void setDestination(String destination) {
+    state = state.copyWith(destination: destination);
+  }
+
+  void setDepartureDate(DateTime date) {
+    state = state.copyWith(departureDate: date);
+  }
+
+  void setReturnDate(DateTime date) {
+    state = state.copyWith(returnDate: date);
+  }
+
+  void setPassengers(int count) {
+    state = state.copyWith(passengers: count);
+  }
+}
+
+final searchControllerProvider = StateNotifierProvider<SearchController, SearchState>((ref) {
+  return SearchController();
+});
