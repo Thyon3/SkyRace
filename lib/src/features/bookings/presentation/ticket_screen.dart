@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../constants/app_colors.dart';
+import '../../../constants/design_system.dart';
 import '../domain/booking.dart';
 
 class TicketScreen extends StatelessWidget {
@@ -22,11 +23,11 @@ class TicketScreen extends StatelessWidget {
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(DesignSystem.spacingL),
         child: Column(
           children: [
             _buildTicketCard(context),
-            const SizedBox(height: 32),
+            const SizedBox(height: DesignSystem.spacingXL),
             _buildActionButtons(context),
           ],
         ),
@@ -42,13 +43,14 @@ class TicketScreen extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: DesignSystem.radiusLarge,
+        boxShadow: DesignSystem.mediumShadow,
       ),
       child: Column(
         children: [
           // Top section
           Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(DesignSystem.spacingL),
             child: Column(
               children: [
                 Row(
@@ -57,25 +59,25 @@ class TicketScreen extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('AIRLINE', style: TextStyle(color: AppColors.textLight, fontSize: 10)),
-                        Text(flight.airline, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text('AIRLINE', style: DesignSystem.caption),
+                        Text(flight.airline, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                       ],
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        const Text('FLIGHT', style: TextStyle(color: AppColors.textLight, fontSize: 10)),
-                        Text(flight.flightNumber, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text('FLIGHT', style: DesignSystem.caption),
+                        Text(flight.flightNumber, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                       ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: DesignSystem.spacingXL),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _buildLocationInfo(originCode, flight.origin.split('(').first.trim(), DateFormat('HH:mm').format(flight.departureTime)),
-                    const Icon(Icons.flight_takeoff, color: AppColors.primary, size: 32),
+                    const Icon(Icons.flight_takeoff, color: AppColors.primary, size: 40),
                     _buildLocationInfo(destCode, flight.destination.split('(').first.trim(), DateFormat('HH:mm').format(flight.arrivalTime)),
                   ],
                 ),
@@ -88,7 +90,7 @@ class TicketScreen extends StatelessWidget {
 
           // Bottom section
           Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(DesignSystem.spacingL),
             child: Column(
               children: [
                 Row(
@@ -98,35 +100,39 @@ class TicketScreen extends StatelessWidget {
                     _buildDetailItem('DATE', DateFormat('MMM d, y').format(flight.departureTime)),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: DesignSystem.spacingL),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _buildDetailItem('SEAT', booking.seats.join(', ')),
-                    _buildDetailItem('CLASS', 'Economy'),
+                    _buildDetailItem('GATE', flight.gate),
                   ],
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: DesignSystem.spacingXL),
                 // Mock Barcode
                 Container(
-                  height: 60,
+                  height: 80,
                   width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.background,
+                    borderRadius: DesignSystem.radiusMedium,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(40, (index) => Container(
-                      width: (index % 3 == 0) ? 4 : 2,
+                    children: List.generate(50, (index) => Container(
+                      width: (index % 4 == 0) ? 4 : 2,
                       margin: const EdgeInsets.symmetric(horizontal: 1),
                       color: Colors.black87,
-                      height: 40,
+                      height: 50,
                     )),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(booking.id?.toUpperCase() ?? 'ABC123XYZ', style: const TextStyle(letterSpacing: 4, fontSize: 12, color: AppColors.textLight)),
+                const SizedBox(height: 12),
+                Text(
+                  booking.id?.toUpperCase() ?? 'SKY-RE-778',
+                  style: const TextStyle(letterSpacing: 6, fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textMedium),
+                ),
               ],
             ),
           ),
@@ -138,10 +144,10 @@ class TicketScreen extends StatelessWidget {
   Widget _buildLocationInfo(String code, String city, String time) {
     return Column(
       children: [
-        Text(code, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-        Text(city, style: const TextStyle(color: AppColors.textLight, fontSize: 12)),
-        const SizedBox(height: 4),
-        Text(time, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary)),
+        Text(code, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+        Text(city, style: DesignSystem.caption),
+        const SizedBox(height: 8),
+        Text(time, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary)),
       ],
     );
   }
@@ -150,8 +156,8 @@ class TicketScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: AppColors.textLight, fontSize: 10)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        Text(label, style: DesignSystem.caption),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
       ],
     );
   }
@@ -175,7 +181,7 @@ class TicketScreen extends StatelessWidget {
                 return Flex(
                   direction: Axis.horizontal,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: List.generate((constraints.constrainWidth() / 10).floor(), (index) => const SizedBox(width: 5, height: 1, child: DecoratedBox(decoration: BoxDecoration(color: Colors.grey)))),
+                  children: List.generate((constraints.constrainWidth() / 12).floor(), (index) => const SizedBox(width: 6, height: 2, child: DecoratedBox(decoration: BoxDecoration(color: AppColors.border)))),
                 );
               },
             ),
@@ -198,34 +204,31 @@ class TicketScreen extends StatelessWidget {
       children: [
         SizedBox(
           width: double.infinity,
+          height: 56,
           child: ElevatedButton.icon(
-            onPressed: () {
-              // TODO: Implement PDF Download
-            },
+            onPressed: () {},
             icon: const Icon(Icons.download_outlined),
-            label: const Text('Download PDF'),
+            label: const Text('Download Ticket'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: DesignSystem.radiusMedium),
+              elevation: 0,
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: DesignSystem.spacingM),
         SizedBox(
           width: double.infinity,
+          height: 56,
           child: OutlinedButton.icon(
-            onPressed: () {
-              // TODO: Implement Share
-            },
+            onPressed: () {},
             icon: const Icon(Icons.share_outlined),
-            label: const Text('Share Ticket'),
+            label: const Text('Share with Friends'),
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white,
-              side: const BorderSide(color: Colors.white),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              side: const BorderSide(color: Colors.white, width: 2),
+              shape: RoundedRectangleBorder(borderRadius: DesignSystem.radiusMedium),
             ),
           ),
         ),
