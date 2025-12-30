@@ -6,6 +6,8 @@ import '../../../constants/app_colors.dart';
 import '../../search/domain/flight.dart';
 import '../domain/booking.dart';
 import 'booking_controller.dart';
+import '../../search/presentation/search_controller.dart';
+import '../../search/domain/search_state.dart';
 
 class BookingScreen extends ConsumerStatefulWidget {
   final Flight flight;
@@ -35,6 +37,9 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     final bookingState = ref.watch(bookingControllerProvider);
+    final searchState = ref.watch(searchControllerProvider);
+    final totalPassengers = searchState.passengers;
+    final totalPrice = (widget.flight.price + 45) * totalPassengers;
 
     ref.listen<AsyncValue>(bookingControllerProvider, (previous, next) {
       next.whenOrNull(
@@ -62,7 +67,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildFlightSummaryCard(),
+            _buildFlightSummaryCard(totalPassengers),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Form(
@@ -70,10 +75,18 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Passenger Details',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                    Text(
+                      'Primary Passenger Details',
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
                     ),
+                    if (totalPassengers > 1)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Text(
+                          'You are booking for $totalPassengers passengers',
+                          style: const TextStyle(color: AppColors.textLight, fontSize: 14),
+                        ),
+                      ),
                     const SizedBox(height: 16),
                     _buildTextField(
                       controller: _firstNameController,
@@ -100,7 +113,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                       icon: Icons.badge_outlined,
                     ),
                     const SizedBox(height: 32),
-                    _buildPriceBreakdown(),
+                    _buildPriceBreakdown(totalPassengers, totalPrice),
                     const SizedBox(height: 32),
                     SizedBox(
                       width: double.infinity,
@@ -118,7 +131,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                                             passportNumber: _passportController.text,
                                           ),
                                         ],
-                                        totalPrice: widget.flight.price,
+                                        totalPrice: totalPrice,
                                       );
                                 }
                               },
@@ -129,7 +142,11 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                           elevation: 0,
                         ),
                         child: bookingState.isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              )
                             : const Text(
                                 'Pay & Confirm',
                                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -174,7 +191,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     );
   }
 
-  Widget _buildFlightSummaryCard() {
+  Widget _buildFlightSummaryCard(int passengers) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -203,7 +220,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(widget.flight.airline, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text(widget.flight.flightNumber, style: const TextStyle(color: AppColors.textLight, fontSize: 12)),
+                  Text('${widget.flight.flightNumber} • $passengers Passenger${passengers > 1 ? 's' : ''}', style: const TextStyle(color: AppColors.textLight, fontSize: 12)),
                 ],
               ),
               const Spacer(),
@@ -241,7 +258,7 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
     );
   }
 
-  Widget _buildPriceBreakdown() {
+  Widget _buildPriceBreakdown(int passengers, double totalPrice) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -251,15 +268,15 @@ class _BookingScreenState extends ConsumerState<BookingScreen> {
       ),
       child: Column(
         children: [
-          _buildPriceRow('Flight Fare', widget.flight.price),
-          _buildPriceRow('Taxes & Fees', 45.0),
+          _buildPriceRow('Flight Fare ($passengers x ${widget.flight.price.toInt()})', widget.flight.price * passengers),
+          _buildPriceRow('Taxes & Fees ($passengers x 45)', 45.0 * passengers),
           const Divider(height: 32),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Total Amount', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               Text(
-                '${widget.flight.currency} ${widget.flight.price + 45}',
+                '${widget.flight.currency} ${totalPrice.toInt()}',
                 style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.primary),
               ),
             ],

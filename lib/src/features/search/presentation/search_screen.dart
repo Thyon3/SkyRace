@@ -152,7 +152,7 @@ class SearchScreen extends ConsumerWidget {
                 ),
               ),
               _buildSearchHistory(history, ref, context),
-              _buildPopularDestinations(),
+              _buildPopularDestinations(controller),
             ],
           ),
         ),
@@ -380,7 +380,7 @@ class SearchScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildPopularDestinations() {
+  Widget _buildPopularDestinations(SearchController controller) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -396,9 +396,9 @@ class SearchScreen extends ConsumerWidget {
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
-                _buildDestinationCard('Paris', 'France', 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34'),
-                _buildDestinationCard('Tokyo', 'Japan', 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf'),
-                _buildDestinationCard('Rome', 'Italy', 'https://images.unsplash.com/photo-1552832230-c0197dd311b5'),
+                _buildDestinationCard('Paris', 'France', 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34', () => controller.setDestination('Paris (CDG)')),
+                _buildDestinationCard('Tokyo', 'Japan', 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf', () => controller.setDestination('Tokyo (NRT)')),
+                _buildDestinationCard('Rome', 'Italy', 'https://images.unsplash.com/photo-1552832230-c0197dd311b5', () => controller.setDestination('Rome (FCO)')),
               ],
             ),
           ),
@@ -407,34 +407,38 @@ class SearchScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDestinationCard(String city, String country, String imageUrl) {
-    return Container(
-      width: 160,
-      margin: const EdgeInsets.only(right: 16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        image: DecorationImage(
-          image: NetworkImage(imageUrl),
-          fit: BoxFit.cover,
-        ),
-      ),
+  Widget _buildDestinationCard(String city, String country, String imageUrl, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
       child: Container(
+        width: 160,
+        margin: const EdgeInsets.only(right: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-            colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+          image: DecorationImage(
+            image: NetworkImage(imageUrl),
+            fit: BoxFit.cover,
           ),
         ),
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(city, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-            Text(country, style: const TextStyle(color: Colors.white70, fontSize: 12)),
-          ],
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+            ),
+          ),
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(city, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(country, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+            ],
+          ),
         ),
       ),
     );
