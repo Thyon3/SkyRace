@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../constants/app_colors.dart';
 import '../domain/flight.dart';
 import 'search_results_controller.dart';
+import 'flight_card_shimmer.dart';
 
 class SearchResultsScreen extends ConsumerWidget {
   const SearchResultsScreen({super.key});
@@ -38,7 +39,11 @@ class SearchResultsScreen extends ConsumerWidget {
             },
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+        loading: () => ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: 5,
+          itemBuilder: (context, index) => const FlightCardShimmer(),
+        ),
         error: (err, stack) => Center(child: Text('Error: $err')),
       ),
     );
