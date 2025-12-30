@@ -116,7 +116,7 @@ class ProfileScreen extends ConsumerWidget {
                   ListTile(
                     leading: const Icon(Icons.settings_outlined),
                     title: const Text('Settings'),
-                    onTap: () {},
+                    onTap: () => context.push('/settings'),
                   ),
                   ListTile(
                     leading: const Icon(Icons.help_outline),

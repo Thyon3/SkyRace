@@ -12,6 +12,7 @@ import '../features/home/presentation/main_screen.dart';
 import '../features/search/presentation/flight_details_screen.dart';
 import '../features/auth/presentation/edit_profile_screen.dart';
 import '../features/home/presentation/help_center_screen.dart';
+import '../features/home/presentation/settings_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authControllerProvider);
@@ -76,6 +77,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/help-center',
         builder: (context, state) => const HelpCenterScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );
