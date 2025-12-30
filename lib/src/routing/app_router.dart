@@ -8,6 +8,7 @@ import '../features/search/domain/flight.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/auth/presentation/auth_controller.dart';
+import '../features/home/presentation/main_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authControllerProvider);
@@ -34,7 +35,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/',
-        builder: (context, state) => const SearchScreen(),
+        builder: (context, state) => const MainScreen(),
         routes: [
           GoRoute(
             path: 'results',
