@@ -124,14 +124,17 @@ class FlightCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary,
-                      borderRadius: BorderRadius.circular(8),
+                  Hero(
+                    tag: 'airline_icon_${flight.id}',
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.flight, color: AppColors.primary),
                     ),
-                    child: const Icon(Icons.flight, color: AppColors.primary),
                   ),
                   const SizedBox(width: 12),
                   Expanded(

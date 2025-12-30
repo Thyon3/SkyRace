@@ -64,11 +64,24 @@ class FlightDetailsScreen extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
+          Hero(
+            tag: 'airline_icon_${flight.id}',
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppColors.secondary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.flight, color: AppColors.primary, size: 32),
+            ),
+          ),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildLocation(flight.origin, DateFormat('HH:mm').format(flight.departureTime)),
-              const Icon(Icons.flight_takeoff, color: AppColors.primary, size: 32),
+              const Icon(Icons.arrow_forward, color: AppColors.primary, size: 24),
               _buildLocation(flight.destination, DateFormat('HH:mm').format(flight.arrivalTime)),
             ],
           ),
