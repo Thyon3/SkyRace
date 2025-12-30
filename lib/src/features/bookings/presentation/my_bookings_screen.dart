@@ -85,74 +85,75 @@ class BookingCard extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        booking.status.toUpperCase(),
-                        style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12),
-                      ),
-                    ),
-                    Text(
-                      booking.createdAt != null ? DateFormat('MMM d, y').format(booking.createdAt!) : '',
-                      style: const TextStyle(color: AppColors.textLight, fontSize: 12),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    const Icon(Icons.flight_takeoff, color: AppColors.primary, size: 20),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Flight ${booking.flightId}',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(Icons.person_outline, color: AppColors.textLight, size: 20),
-                    const SizedBox(width: 12),
-                    Text(
-                      '${booking.passengers.length} Passenger${booking.passengers.length > 1 ? 's' : ''}',
-                      style: const TextStyle(color: AppColors.textLight),
-                    ),
-                  ],
+                const Text('SkyRace Air', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    booking.status.toUpperCase(),
+                    style: const TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
           ),
-          const Divider(height: 1),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                Expanded(child: Divider(thickness: 1, color: Colors.grey)),
+              ],
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                _buildLocationColumn('JFK', 'New York'),
+                const Icon(Icons.flight_takeoff, color: AppColors.textLight),
+                _buildLocationColumn('LHR', 'London'),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
                 Text(
-                  'Total Paid: \$${booking.totalPrice}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary),
+                  'Passenger: ${booking.passengers.first.firstName} ${booking.passengers.first.lastName}',
+                  style: const TextStyle(fontSize: 12, color: AppColors.textLight),
                 ),
-                TextButton(
-                  onPressed: () {
-                    // TODO: Show ticket details
-                  },
-                  child: const Text('View Ticket', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  'USD ${booking.totalPrice.toInt()}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildLocationColumn(String code, String city) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(code, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        Text(city, style: const TextStyle(color: AppColors.textLight, fontSize: 12)),
+      ],
     );
   }
 }
