@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../search/presentation/search_screen.dart';
+import '../../bookings/presentation/my_bookings_screen.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../../constants/app_colors.dart';
 
@@ -16,7 +15,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const SearchScreen(),
-    const Center(child: Text('My Bookings')), // Placeholder
+    const MyBookingsScreen(),
     const ProfileScreen(),
   ];
 
