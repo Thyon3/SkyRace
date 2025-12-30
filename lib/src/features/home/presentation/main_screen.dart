@@ -121,7 +121,7 @@ class ProfileScreen extends ConsumerWidget {
                   ListTile(
                     leading: const Icon(Icons.help_outline),
                     title: const Text('Help Center'),
-                    onTap: () {},
+                    onTap: () => context.push('/help-center'),
                   ),
                   const Spacer(),
                   SizedBox(
