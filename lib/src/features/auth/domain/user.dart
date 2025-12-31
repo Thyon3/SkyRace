@@ -2,19 +2,24 @@ class UserPreferences {
   final String language;
   final String currency;
   final String theme;
+  final String? weightUnit;
 
   UserPreferences({
     required this.language,
     required this.currency,
     required this.theme,
+    this.weightUnit,
   });
+
 
   factory UserPreferences.fromJson(Map<String, dynamic> json) {
     return UserPreferences(
       language: json['language'] ?? 'en',
       currency: json['currency'] ?? 'USD',
       theme: json['theme'] ?? 'light',
+      weightUnit: json['weightUnit'] ?? 'kg',
     );
+
   }
 
   Map<String, dynamic> toJson() {
@@ -22,20 +27,25 @@ class UserPreferences {
       'language': language,
       'currency': currency,
       'theme': theme,
+      'weightUnit': weightUnit,
     };
+
   }
 
   UserPreferences copyWith({
     String? language,
     String? currency,
     String? theme,
+    String? weightUnit,
   }) {
     return UserPreferences(
       language: language ?? this.language,
       currency: currency ?? this.currency,
       theme: theme ?? this.theme,
+      weightUnit: weightUnit ?? this.weightUnit,
     );
   }
+
 }
 
 class User {

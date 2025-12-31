@@ -44,6 +44,14 @@ class SettingsScreen extends ConsumerWidget {
             ),
             _buildSettingsItem(
               context,
+              Icons.scale_outlined, 
+              'Weight Unit', 
+              prefs.weightUnit ?? 'kg',
+              () => _showWeightPicker(context, ref, prefs),
+            ),
+            _buildSettingsItem(
+
+              context,
               Icons.dark_mode_outlined, 
               'Theme', 
               prefs.theme.toUpperCase(),
@@ -125,6 +133,15 @@ class SettingsScreen extends ConsumerWidget {
       );
     });
   }
+
+  void _showWeightPicker(BuildContext context, WidgetRef ref, UserPreferences current) {
+    _showPicker(context, 'Select Weight Unit', ['kg', 'lb'], (val) {
+      ref.read(authControllerProvider.notifier).updatePreferences(
+        current.copyWith(weightUnit: val)
+      );
+    });
+  }
+
 
   void _showPicker(BuildContext context, String title, List<String> options, Function(String) onSelect) {
     showModalBottomSheet(
