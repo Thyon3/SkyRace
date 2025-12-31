@@ -4,12 +4,16 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/design_system.dart';
+import '../../home/presentation/notifications_screen.dart';
 import '../domain/search_state.dart';
+
 import '../domain/location.dart';
 import 'search_controller.dart';
 import 'search_history_controller.dart';
 import 'location_picker.dart';
 import 'passenger_selector.dart';
+import '../../home/presentation/navigation_controller.dart';
+
 
 class SearchScreen extends ConsumerWidget {
   const SearchScreen({super.key});
@@ -33,7 +37,11 @@ class SearchScreen extends ConsumerWidget {
                 children: [
                   _buildTripTypeSelector(searchState, controller),
                   const SizedBox(height: DesignSystem.spacingM),
+                  _buildQuickActions(context, ref),
+                  const SizedBox(height: DesignSystem.spacingM),
+
                   _buildSearchCard(context, searchState, controller),
+
                   const SizedBox(height: DesignSystem.spacingL),
                   _buildSectionTitle('Recent Searches', history.isNotEmpty),
                   _buildSearchHistory(history, ref, context),
@@ -93,7 +101,19 @@ class SearchScreen extends ConsumerWidget {
           ],
         ),
       ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+            );
+          },
+        ),
+      ],
     );
+
   }
 
   Widget _buildSectionTitle(String title, bool showAction) {
@@ -112,6 +132,45 @@ class SearchScreen extends ConsumerWidget {
       ),
     );
   }
+
+  Widget _buildQuickActions(BuildContext context, WidgetRef ref) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildQuickActionItem(context, Icons.check_circle_outline, 'Check-in', () {}),
+        _buildQuickActionItem(context, Icons.luggage_outlined, 'My Trips', () {
+          ref.read(navigationControllerProvider.notifier).setIndex(2);
+        }),
+        _buildQuickActionItem(context, Icons.track_changes, 'Status', () {
+          ref.read(navigationControllerProvider.notifier).setIndex(1);
+        }),
+        _buildQuickActionItem(context, Icons.help_outline, 'Support', () => context.push('/help-center')),
+      ],
+    );
+  }
+
+
+  Widget _buildQuickActionItem(BuildContext context, IconData icon, String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: DesignSystem.radiusMedium,
+              boxShadow: DesignSystem.softShadow,
+            ),
+            child: Icon(icon, color: AppColors.primary, size: 24),
+          ),
+          const SizedBox(height: 8),
+          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textMedium)),
+        ],
+      ),
+    );
+  }
+
 
   Widget _buildSearchCard(BuildContext context, SearchState state, SearchController controller) {
     return Container(

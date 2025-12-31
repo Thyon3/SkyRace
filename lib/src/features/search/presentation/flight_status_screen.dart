@@ -14,6 +14,26 @@ class FlightStatusScreen extends StatefulWidget {
 class _FlightStatusScreenState extends State<FlightStatusScreen> {
   final _flightNumberController = TextEditingController();
   bool _hasSearched = false;
+  final List<String> _trackedFlights = ['SK204', 'SK102', 'AA450']; // Mock history
+
+  @override
+  void dispose() {
+    _flightNumberController.dispose();
+    super.dispose();
+  }
+
+  void _searchFlight([String? flightNumber]) {
+    final number = flightNumber ?? _flightNumberController.text;
+    if (number.isEmpty) return;
+    
+    setState(() {
+      if (flightNumber != null) _flightNumberController.text = flightNumber;
+      _hasSearched = true;
+      if (!_trackedFlights.contains(number.toUpperCase())) {
+        _trackedFlights.insert(0, number.toUpperCase());
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +44,10 @@ class _FlightStatusScreenState extends State<FlightStatusScreen> {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textDark,
         elevation: 0,
+        leading: _hasSearched ? IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => setState(() => _hasSearched = false),
+        ) : null,
       ),
       body: Column(
         children: [
@@ -51,16 +75,18 @@ class _FlightStatusScreenState extends State<FlightStatusScreen> {
               fillColor: AppColors.background,
               border: OutlineInputBorder(borderRadius: DesignSystem.radiusMedium, borderSide: BorderSide.none),
             ),
+            onSubmitted: (_) => _searchFlight(),
           ),
           const SizedBox(height: DesignSystem.spacingM),
           SizedBox(
             width: double.infinity,
             height: 50,
             child: ElevatedButton(
-              onPressed: () => setState(() => _hasSearched = true),
+              onPressed: _searchFlight,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(borderRadius: DesignSystem.radiusMedium),
+                elevation: 0,
               ),
               child: const Text('Check Status', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
@@ -71,18 +97,46 @@ class _FlightStatusScreenState extends State<FlightStatusScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
+    return SingleChildScrollView(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          const SizedBox(height: 40),
           Icon(Icons.track_changes, size: 80, color: AppColors.textLight.withOpacity(0.3)),
           const SizedBox(height: DesignSystem.spacingM),
           const Text('Track any flight in real-time', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           const Text('Enter a flight number to see its current status', style: TextStyle(color: AppColors.textLight)),
+          
+          if (_trackedFlights.isNotEmpty) ...[
+            const SizedBox(height: 40),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Recent Searches', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  TextButton(onPressed: () => setState(() => _trackedFlights.clear()), child: const Text('Clear')),
+                ],
+              ),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _trackedFlights.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  leading: const Icon(Icons.history, color: AppColors.textLight),
+                  title: Text(_trackedFlights[index], style: const TextStyle(fontWeight: FontWeight.bold)),
+                  trailing: const Icon(Icons.chevron_right, size: 20),
+                  onTap: () => _searchFlight(_trackedFlights[index]),
+                );
+              },
+            ),
+          ],
         ],
       ),
     );
   }
+
 
   Widget _buildStatusResults() {
     return ListView(
