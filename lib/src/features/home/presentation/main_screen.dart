@@ -9,27 +9,24 @@ import '../../utils/theme_controller.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/design_system.dart';
 
-class MainScreen extends StatefulWidget {
+import 'navigation_controller.dart';
+
+class MainScreen extends ConsumerWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedIndex = ref.watch(navigationControllerProvider);
 
-class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
+    final List<Widget> _screens = [
+      const SearchScreen(),
+      const FlightStatusScreen(),
+      const MyBookingsScreen(),
+      const ProfileScreen(),
+    ];
 
-  final List<Widget> _screens = [
-    const SearchScreen(),
-    const FlightStatusScreen(),
-    const MyBookingsScreen(),
-    const ProfileScreen(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: _screens[selectedIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
@@ -37,8 +34,8 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
         child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) => setState(() => _selectedIndex = index),
+          currentIndex: selectedIndex,
+          onTap: (index) => ref.read(navigationControllerProvider.notifier).setIndex(index),
           selectedItemColor: AppColors.primary,
           unselectedItemColor: AppColors.textLight,
           type: BottomNavigationBarType.fixed,
@@ -55,6 +52,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
+
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
