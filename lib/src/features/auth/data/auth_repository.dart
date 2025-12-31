@@ -93,6 +93,8 @@ class AuthRepository {
       print('Error updating profile: $e');
       rethrow;
     }
+  }
+
   Future<User> updatePreferences(UserPreferences preferences, String token) async {
     final uri = Uri.parse('$baseUrl/auth/preferences');
     
@@ -117,6 +119,7 @@ class AuthRepository {
       rethrow;
     }
   }
+
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
