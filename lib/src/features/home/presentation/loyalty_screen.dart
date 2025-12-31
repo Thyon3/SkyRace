@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../constants/app_colors.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../data/loyalty_repository.dart';
+
 
 class LoyaltyScreen extends ConsumerWidget {
   const LoyaltyScreen({super.key});
@@ -48,11 +50,82 @@ class LoyaltyScreen extends ConsumerWidget {
             _buildTierBenefit('Silver', 'Priority check-in, 10% bonus points.', isActive: user.loyaltyTier == 'Silver'),
             _buildTierBenefit('Gold', 'Lounge access, 25% bonus points, free seat selection.', isActive: user.loyaltyTier == 'Gold'),
             _buildTierBenefit('Platinum', 'First class upgrades, 50% bonus points, dedicated concierge.', isActive: user.loyaltyTier == 'Platinum'),
+            const SizedBox(height: 32),
+            const Text(
+              'Recent Activity',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            _buildPointsHistory(ref),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildPointsHistory(WidgetRef ref) {
+    final historyAsync = ref.watch(loyaltyHistoryProvider);
+    return historyAsync.when(
+      data: (transactions) {
+        if (transactions.isEmpty) {
+          return const Center(child: Text('No points activity yet', style: TextStyle(color: AppColors.textLight)));
+        }
+        return Column(
+          children: transactions.map((t) => _buildHistoryItem(t)).toList(),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, _) => Text('Error loading history: $err'),
+    );
+  }
+
+  Widget _buildHistoryItem(LoyaltyTransactionModel t) {
+    final isEarned = t.type == 'EARNED';
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 2))],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: (isEarned ? Colors.green : Colors.red).withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isEarned ? Icons.add : Icons.remove,
+              color: isEarned ? Colors.green : Colors.red,
+              size: 16,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(t.description, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                Text('${t.createdAt.day}/${t.createdAt.month}/${t.createdAt.year}', style: const TextStyle(color: AppColors.textLight, fontSize: 12)),
+              ],
+            ),
+          ),
+          Text(
+            '${isEarned ? '+' : '-'}${t.points}',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isEarned ? Colors.green : Colors.red,
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _buildTierCard(String tier, int points) {
     Color tierColor;
